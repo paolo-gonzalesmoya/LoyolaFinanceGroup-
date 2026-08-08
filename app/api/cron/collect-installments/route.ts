@@ -5,12 +5,20 @@ import { getStripe } from "@/lib/stripe/client";
 import { aplicarResultadoCobro, registrarMovimiento } from "@/lib/ledger/movimientos";
 import { calcularNuevoEstadoCuota } from "@/lib/cobranza/estado";
 import { diasDeAtraso, calcularPorcentajeMora, calcularMontoMora } from "@/lib/mora/calculo";
+import { notificarResultadoCobro } from "@/lib/notificaciones/registrar";
 import type { Database } from "@/types/database.types";
 
 export const dynamic = "force-dynamic";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
-type Cuota = { id: string; monto: number; fecha_vencimiento: string; estado: Database["public"]["Enums"]["estado_cuota"]; prestamo_id: string };
+type Cuota = {
+  id: string;
+  numero: number;
+  monto: number;
+  fecha_vencimiento: string;
+  estado: Database["public"]["Enums"]["estado_cuota"];
+  prestamo_id: string;
+};
 type TipoMovimiento = Database["public"]["Enums"]["tipo_movimiento"];
 
 // Cron diario (vercel.json): para cada cuota pendiente/vencida/en_mora cuyo
@@ -30,7 +38,7 @@ export async function GET(request: Request) {
 
   const { data: cuotas, error } = await supabase
     .from("cuota")
-    .select("id, monto, fecha_vencimiento, estado, prestamo_id")
+    .select("id, numero, monto, fecha_vencimiento, estado, prestamo_id")
     .in("estado", ["pendiente", "vencida", "en_mora"])
     .lte("fecha_vencimiento", hoyStr);
 
@@ -49,10 +57,14 @@ export async function GET(request: Request) {
 async function procesarCuota(supabase: AdminClient, stripe: Stripe, cuota: Cuota, hoy: Date, hoyStr: string) {
   const { data: prestamo } = await supabase
     .from("prestamo")
-    .select("mandato_cobro_id")
+    .select("mandato_cobro_id, estado")
     .eq("id", cuota.prestamo_id)
     .single();
   if (!prestamo?.mandato_cobro_id) return { omitido: "préstamo sin mandato de cobro activo" };
+  // Un préstamo cancelado (o ya pagado) no debe seguir generando intentos de
+  // cobro ni reintentos de mora — este es el freno para el "reintenta para
+  // siempre" que tenía el diseño original.
+  if (prestamo.estado !== "activo") return { omitido: `préstamo no activo (estado: ${prestamo.estado})` };
 
   const { data: mandato } = await supabase
     .from("mandato_cobro")
@@ -63,7 +75,7 @@ async function procesarCuota(supabase: AdminClient, stripe: Stripe, cuota: Cuota
 
   const { data: cliente } = await supabase
     .from("cliente")
-    .select("stripe_customer_id")
+    .select("stripe_customer_id, correo")
     .eq("id", mandato.cliente_id)
     .single();
   if (!cliente?.stripe_customer_id) return { omitido: "cliente sin Stripe customer" };
@@ -88,6 +100,17 @@ async function procesarCuota(supabase: AdminClient, stripe: Stripe, cuota: Cuota
   if (estadoNuevo !== cuota.estado) {
     await supabase.from("cuota").update({ estado: estadoNuevo }).eq("id", cuota.id);
   }
+
+  await notificarResultadoCobro(supabase, {
+    clienteId: mandato.cliente_id,
+    cuotaId: cuota.id,
+    numeroCuota: cuota.numero,
+    monto: Number(cuota.monto),
+    tipoMovimiento: "cobro",
+    exitoso: cobro.exitoso,
+    estadoCuota: estadoNuevo,
+    clienteCorreo: cliente.correo,
+  }).catch(() => {});
 
   let mora = null;
   if (!cobro.exitoso && estadoNuevo === "en_mora") {

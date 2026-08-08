@@ -17,6 +17,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
     ...(usuario.rol === "admin"
       ? [
           { href: "/clientes", label: "Clientes" },
+          { href: "/notificaciones", label: "Notificaciones" },
           { href: "/configuracion", label: "Configuración" },
         ]
       : []),

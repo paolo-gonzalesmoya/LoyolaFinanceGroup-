@@ -8,6 +8,7 @@ import { MandatoCobro } from "./mandato-cobro";
 import { ContratoForm } from "./contrato-form";
 import { VerificarDownpaymentButton } from "./verificar-downpayment";
 import { AvanceObraForm, AvanceObraTimeline } from "./avance-obra";
+import { CancelarPrestamoButton, ReembolsarButton } from "./acciones-cobranza";
 import { getAvanceObraFotoSignedUrl } from "@/lib/storage/avance-obra-fotos";
 
 export default async function ContratoPage({ params }: PageProps<"/clientes/[id]/contrato">) {
@@ -44,7 +45,7 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
       ? supabase.from("comision_vendedor").select("*").eq("contrato_id", contrato.id).maybeSingle()
       : Promise.resolve({ data: null }),
     contrato
-      ? supabase.from("prestamo").select("id, monto_financiado").eq("contrato_id", contrato.id).maybeSingle()
+      ? supabase.from("prestamo").select("id, monto_financiado, estado").eq("contrato_id", contrato.id).maybeSingle()
       : Promise.resolve({ data: null }),
   ]);
 
@@ -63,7 +64,7 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
       ? (
           await supabase
             .from("movimiento_pago")
-            .select("id, cuota_id, tipo, monto, resultado, fecha_registro")
+            .select("id, cuota_id, tipo, monto, resultado, fecha_registro, movimiento_original_id")
             .in(
               "cuota_id",
               cuotas.map((c) => c.id)
@@ -73,6 +74,7 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
       : null;
 
   const numeroPorCuotaId = new Map((cuotas ?? []).map((c) => [c.id, c.numero]));
+  const idsYaReembolsados = new Set((movimientos ?? []).map((m) => m.movimiento_original_id).filter(Boolean));
 
   const ESTADO_CUOTA_VARIANT = {
     pendiente: "outline",
@@ -189,8 +191,14 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
               </TableBody>
             </Table>
             <p className="mt-2 text-sm text-muted-foreground">
-              Monto financiado: ${Number(prestamo.monto_financiado).toFixed(2)}
+              Monto financiado: ${Number(prestamo.monto_financiado).toFixed(2)} ·{" "}
+              <Badge variant={prestamo.estado === "activo" ? "outline" : "secondary"}>{prestamo.estado}</Badge>
             </p>
+            {prestamo.estado === "activo" && (
+              <div className="mt-2">
+                <CancelarPrestamoButton clienteId={cliente.id} prestamoId={prestamo.id} />
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -209,22 +217,30 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
                   <TableHead>Monto</TableHead>
                   <TableHead>Resultado</TableHead>
                   <TableHead>Fecha</TableHead>
+                  <TableHead />
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {movimientos.map((m) => (
-                  <TableRow key={m.id}>
-                    <TableCell>{numeroPorCuotaId.get(m.cuota_id) ?? "—"}</TableCell>
-                    <TableCell className="capitalize">{m.tipo}</TableCell>
-                    <TableCell>${Number(m.monto).toFixed(2)}</TableCell>
-                    <TableCell>
-                      <Badge variant={m.resultado === "exitoso" ? "default" : m.resultado === "fallido" ? "destructive" : "secondary"}>
-                        {m.resultado}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(m.fecha_registro).toLocaleString("es-PE")}</TableCell>
-                  </TableRow>
-                ))}
+                {movimientos.map((m) => {
+                  const esReembolsable =
+                    (m.tipo === "cobro" || m.tipo === "mora") && m.resultado === "exitoso" && !idsYaReembolsados.has(m.id);
+                  return (
+                    <TableRow key={m.id}>
+                      <TableCell>{numeroPorCuotaId.get(m.cuota_id) ?? "—"}</TableCell>
+                      <TableCell className="capitalize">{m.tipo}</TableCell>
+                      <TableCell>${Number(m.monto).toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge variant={m.resultado === "exitoso" ? "default" : m.resultado === "fallido" ? "destructive" : "secondary"}>
+                          {m.resultado}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{new Date(m.fecha_registro).toLocaleString("es-PE")}</TableCell>
+                      <TableCell>
+                        {esReembolsable && <ReembolsarButton clienteId={cliente.id} movimientoId={m.id} />}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </CardContent>

@@ -3,11 +3,14 @@
 import { revalidatePath } from "next/cache";
 import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getStaffUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/client";
 import { generarCronograma } from "@/lib/prestamos/amortizacion";
 import { TOPE_FINANCIAMIENTO_USD } from "@/lib/credito/reglas";
 import { subirFotoAvanceObra } from "@/lib/storage/avance-obra-fotos";
+import { registrarReembolso } from "@/lib/ledger/movimientos";
+import { notificarPrestamoCancelado, notificarReembolso } from "@/lib/notificaciones/registrar";
 
 const NUMERO_CUOTAS_VALIDAS = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
 
@@ -298,6 +301,95 @@ export async function registrarAvanceObra(
     const path = await subirFotoAvanceObra(supabase, input.contratoId, avance.id, foto);
     if (path) await supabase.from("avance_obra").update({ foto_url: path }).eq("id", avance.id);
   }
+
+  revalidatePath(`/clientes/${input.clienteId}/contrato`);
+  return { error: null };
+}
+
+export async function cancelarPrestamo(input: { clienteId: string; prestamoId: string }) {
+  const usuario = await requireAdmin();
+  if (!usuario) return { error: "No autorizado." };
+
+  const supabase = await createClient();
+
+  // El where estado='activo' es la guarda: si ya estaba cancelado o pagado,
+  // 0 filas afectadas.
+  const { data: actualizados, error } = await supabase
+    .from("prestamo")
+    .update({ estado: "cancelado" })
+    .eq("id", input.prestamoId)
+    .eq("estado", "activo")
+    .select("id");
+
+  if (error) return { error: `No se pudo cancelar el préstamo: ${error.message}` };
+  if (!actualizados || actualizados.length === 0) return { error: "El préstamo ya no estaba activo." };
+
+  const { data: cliente } = await supabase.from("cliente").select("correo").eq("id", input.clienteId).single();
+  await notificarPrestamoCancelado(supabase, { clienteId: input.clienteId, clienteCorreo: cliente?.correo ?? null }).catch(() => {});
+
+  revalidatePath(`/clientes/${input.clienteId}/contrato`);
+  return { error: null };
+}
+
+export async function reembolsarMovimiento(input: { clienteId: string; movimientoId: string }) {
+  const usuario = await requireAdmin();
+  if (!usuario) return { error: "No autorizado." };
+
+  const supabase = await createClient();
+
+  const { data: movimiento } = await supabase
+    .from("movimiento_pago")
+    .select("id, cuota_id, tipo, monto, resultado, stripe_event_id")
+    .eq("id", input.movimientoId)
+    .single();
+
+  if (!movimiento) return { error: "Movimiento no encontrado." };
+  if (movimiento.tipo !== "cobro" && movimiento.tipo !== "mora") return { error: "Solo se pueden reembolsar cobros o cargos de mora." };
+  if (movimiento.resultado !== "exitoso") return { error: "Solo se puede reembolsar un cobro exitoso." };
+  if (!movimiento.stripe_event_id) return { error: "Este movimiento no tiene un cargo de Stripe asociado." };
+
+  const { data: reembolsoPrevio } = await supabase
+    .from("movimiento_pago")
+    .select("id")
+    .eq("movimiento_original_id", movimiento.id)
+    .maybeSingle();
+  if (reembolsoPrevio) return { error: "Este cobro ya fue reembolsado." };
+
+  const { data: cuota } = await supabase.from("cuota").select("numero").eq("id", movimiento.cuota_id).single();
+
+  const claveIdempotencia = `reembolso:${movimiento.id}`;
+  const stripe = getStripe();
+  let refund: Stripe.Refund;
+  try {
+    refund = await stripe.refunds.create(
+      { payment_intent: movimiento.stripe_event_id },
+      { idempotencyKey: claveIdempotencia }
+    );
+  } catch (e) {
+    const mensaje = e instanceof Stripe.errors.StripeError ? e.message : "Error desconocido al reembolsar.";
+    return { error: `No se pudo reembolsar en Stripe: ${mensaje}` };
+  }
+
+  // El insert real del reembolso pasa siempre por el cliente service-role
+  // (lib/ledger/movimientos.ts): admin, aun autenticado, no tiene policy de
+  // INSERT sobre movimiento_pago — ver supabase/migrations/..._auth_linkage_rls.sql.
+  const adminClient = createAdminClient();
+  await registrarReembolso(adminClient, {
+    cuotaId: movimiento.cuota_id,
+    movimientoOriginalId: movimiento.id,
+    monto: Number(movimiento.monto),
+    stripeRefundId: refund.id,
+    claveIdempotencia,
+  });
+
+  const { data: cliente } = await supabase.from("cliente").select("correo").eq("id", input.clienteId).single();
+  await notificarReembolso(adminClient, {
+    clienteId: input.clienteId,
+    cuotaId: movimiento.cuota_id,
+    numeroCuota: cuota?.numero ?? 0,
+    monto: Number(movimiento.monto),
+    clienteCorreo: cliente?.correo ?? null,
+  }).catch(() => {});
 
   revalidatePath(`/clientes/${input.clienteId}/contrato`);
   return { error: null };

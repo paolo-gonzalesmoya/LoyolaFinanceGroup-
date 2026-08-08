@@ -19,6 +19,7 @@ export async function registrarMovimiento(
     stripeEventId?: string | null;
     claveIdempotencia: string;
     resultado: ResultadoMovimiento;
+    movimientoOriginalId?: string | null;
   }
 ): Promise<{ yaRegistrado: boolean; id: string | null }> {
   const { data, error } = await supabase
@@ -30,6 +31,7 @@ export async function registrarMovimiento(
       stripe_event_id: input.stripeEventId ?? null,
       clave_idempotencia: input.claveIdempotencia,
       resultado: input.resultado,
+      movimiento_original_id: input.movimientoOriginalId ?? null,
     })
     .select("id")
     .single();
@@ -73,6 +75,29 @@ export async function aplicarResultadoCobro(
   if (!yaRegistrado && input.exitoso && input.tipo === "cobro") {
     await supabase.from("cuota").update({ estado: "pagada" }).eq("id", input.cuotaId);
   }
+
+  return { yaRegistrado };
+}
+
+// Registra un reembolso ya confirmado en Stripe. El monto se guarda en
+// NEGATIVO a propósito: el saldo de una cuota es la suma de sus
+// movimientos (Decisión de seguridad #8 del plan), así un reembolso resta
+// solo, sin necesitar lógica especial en quien sume. No toca cuota.estado
+// — la cuota históricamente SÍ se pagó; el reembolso es un evento aparte
+// sobre el ledger, no una reversión de esa cuota a "pendiente".
+export async function registrarReembolso(
+  supabase: AdminClient,
+  input: { cuotaId: string; movimientoOriginalId: string; monto: number; stripeRefundId: string; claveIdempotencia: string }
+): Promise<{ yaRegistrado: boolean }> {
+  const { yaRegistrado } = await registrarMovimiento(supabase, {
+    cuotaId: input.cuotaId,
+    tipo: "reembolso",
+    monto: -Math.abs(input.monto),
+    stripeEventId: input.stripeRefundId,
+    claveIdempotencia: input.claveIdempotencia,
+    resultado: "exitoso",
+    movimientoOriginalId: input.movimientoOriginalId,
+  });
 
   return { yaRegistrado };
 }

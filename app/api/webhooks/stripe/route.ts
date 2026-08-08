@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { aplicarResultadoCobro } from "@/lib/ledger/movimientos";
 import { calcularNuevoEstadoCuota } from "@/lib/cobranza/estado";
 import { diasDeAtraso } from "@/lib/mora/calculo";
+import { notificarResultadoCobro } from "@/lib/notificaciones/registrar";
 
 export const dynamic = "force-dynamic";
 
@@ -62,21 +63,44 @@ export async function POST(request: Request) {
   });
 
   // Si el cron ya había registrado este mismo intento en el mismo request
-  // síncrono, el estado de la cuota también quedó actualizado entonces.
-  // Este bloque solo importa cuando el webhook es quien resuelve primero
-  // (medios de pago asíncronos, o si el cron perdió su propia respuesta).
-  if (!yaRegistrado && tipo === "cobro" && !exitoso) {
+  // síncrono, el estado de la cuota y la notificación también quedaron
+  // resueltos entonces. Este bloque solo importa cuando el webhook es quien
+  // resuelve primero (medios de pago asíncronos, o si el cron perdió su
+  // propia respuesta).
+  if (!yaRegistrado && tipo === "cobro") {
     const { data: cuota } = await supabase
       .from("cuota")
-      .select("estado, fecha_vencimiento")
+      .select("numero, estado, fecha_vencimiento, prestamo_id")
       .eq("id", cuotaId)
       .single();
 
     if (cuota) {
-      const atraso = diasDeAtraso(cuota.fecha_vencimiento, new Date());
-      const estadoNuevo = calcularNuevoEstadoCuota(false, atraso);
-      if (estadoNuevo !== cuota.estado) {
-        await supabase.from("cuota").update({ estado: estadoNuevo }).eq("id", cuotaId);
+      let estadoNuevo = cuota.estado;
+      if (!exitoso) {
+        const atraso = diasDeAtraso(cuota.fecha_vencimiento, new Date());
+        estadoNuevo = calcularNuevoEstadoCuota(false, atraso);
+        if (estadoNuevo !== cuota.estado) {
+          await supabase.from("cuota").update({ estado: estadoNuevo }).eq("id", cuotaId);
+        }
+      }
+
+      const { data: prestamo } = await supabase.from("prestamo").select("mandato_cobro_id").eq("id", cuota.prestamo_id).single();
+      const { data: mandato } = prestamo?.mandato_cobro_id
+        ? await supabase.from("mandato_cobro").select("cliente_id").eq("id", prestamo.mandato_cobro_id).single()
+        : { data: null };
+
+      if (mandato?.cliente_id) {
+        const { data: cliente } = await supabase.from("cliente").select("correo").eq("id", mandato.cliente_id).single();
+        await notificarResultadoCobro(supabase, {
+          clienteId: mandato.cliente_id,
+          cuotaId,
+          numeroCuota: cuota.numero,
+          monto: paymentIntent.amount / 100,
+          tipoMovimiento: "cobro",
+          exitoso,
+          estadoCuota: estadoNuevo,
+          clienteCorreo: cliente?.correo ?? null,
+        }).catch(() => {});
       }
     }
   }

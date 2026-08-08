@@ -624,6 +624,7 @@ export type Database = {
           monto: number
           monto_capital: number | null
           monto_interes: number | null
+          movimiento_original_id: string | null
           resultado: Database["public"]["Enums"]["resultado_movimiento"]
           stripe_event_id: string | null
           tipo: Database["public"]["Enums"]["tipo_movimiento"]
@@ -636,6 +637,7 @@ export type Database = {
           monto: number
           monto_capital?: number | null
           monto_interes?: number | null
+          movimiento_original_id?: string | null
           resultado: Database["public"]["Enums"]["resultado_movimiento"]
           stripe_event_id?: string | null
           tipo: Database["public"]["Enums"]["tipo_movimiento"]
@@ -648,6 +650,7 @@ export type Database = {
           monto?: number
           monto_capital?: number | null
           monto_interes?: number | null
+          movimiento_original_id?: string | null
           resultado?: Database["public"]["Enums"]["resultado_movimiento"]
           stripe_event_id?: string | null
           tipo?: Database["public"]["Enums"]["tipo_movimiento"]
@@ -655,6 +658,61 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "movimiento_pago_cuota_id_fkey"
+            columns: ["cuota_id"]
+            isOneToOne: false
+            referencedRelation: "cuota"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "movimiento_pago_movimiento_original_id_fkey"
+            columns: ["movimiento_original_id"]
+            isOneToOne: false
+            referencedRelation: "movimiento_pago"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notificacion: {
+        Row: {
+          cliente_id: string | null
+          cuota_id: string | null
+          destinatario: Database["public"]["Enums"]["destinatario_notificacion"]
+          fecha_registro: string
+          id: string
+          leida: boolean
+          mensaje: string
+          tipo: Database["public"]["Enums"]["tipo_notificacion"]
+        }
+        Insert: {
+          cliente_id?: string | null
+          cuota_id?: string | null
+          destinatario: Database["public"]["Enums"]["destinatario_notificacion"]
+          fecha_registro?: string
+          id?: string
+          leida?: boolean
+          mensaje: string
+          tipo: Database["public"]["Enums"]["tipo_notificacion"]
+        }
+        Update: {
+          cliente_id?: string | null
+          cuota_id?: string | null
+          destinatario?: Database["public"]["Enums"]["destinatario_notificacion"]
+          fecha_registro?: string
+          id?: string
+          leida?: boolean
+          mensaje?: string
+          tipo?: Database["public"]["Enums"]["tipo_notificacion"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacion_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "cliente"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacion_cuota_id_fkey"
             columns: ["cuota_id"]
             isOneToOne: false
             referencedRelation: "cuota"
@@ -847,6 +905,7 @@ export type Database = {
     }
     Enums: {
       decision_credito: "pendiente" | "aprobado" | "rechazado"
+      destinatario_notificacion: "admin" | "cliente"
       estado_comision: "devengada" | "pagada" | "revertida"
       estado_cuota: "pendiente" | "pagada" | "vencida" | "en_mora"
       estado_lead:
@@ -867,6 +926,12 @@ export type Database = {
         | "aprobacion_credito"
         | "rechazo_credito"
       tipo_movimiento: "cobro" | "mora" | "reembolso" | "ajuste"
+      tipo_notificacion:
+        | "cobro_exitoso"
+        | "cobro_fallido"
+        | "entrada_mora"
+        | "prestamo_cancelado"
+        | "reembolso"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -998,6 +1063,7 @@ export const Constants = {
   public: {
     Enums: {
       decision_credito: ["pendiente", "aprobado", "rechazado"],
+      destinatario_notificacion: ["admin", "cliente"],
       estado_comision: ["devengada", "pagada", "revertida"],
       estado_cuota: ["pendiente", "pagada", "vencida", "en_mora"],
       estado_lead: [
@@ -1020,6 +1086,13 @@ export const Constants = {
         "rechazo_credito",
       ],
       tipo_movimiento: ["cobro", "mora", "reembolso", "ajuste"],
+      tipo_notificacion: [
+        "cobro_exitoso",
+        "cobro_fallido",
+        "entrada_mora",
+        "prestamo_cancelado",
+        "reembolso",
+      ],
     },
   },
 } as const
