@@ -25,7 +25,7 @@ export function VerificarDownpaymentButton({ input }: { input: Input }) {
           })
         }
       >
-        {pending ? "Verificando…" : "Verificar downpayment recibido"}
+        {pending ? "Cobrando…" : "Cobrar downpayment (50%)"}
       </Button>
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>

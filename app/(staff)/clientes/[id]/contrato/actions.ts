@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import Stripe from "stripe";
 import { createClient } from "@/lib/supabase/server";
 import { getStaffUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/client";
@@ -157,10 +158,18 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
 
   const { data: contrato } = await supabase.from("contrato").select("*").eq("id", input.contratoId).single();
   if (!contrato) return { error: "Contrato no encontrado." };
+  if (contrato.downpayment_pagado) return { error: "El downpayment ya estaba cobrado." };
+
+  const { data: cliente } = await supabase
+    .from("cliente")
+    .select("stripe_customer_id")
+    .eq("id", input.clienteId)
+    .single();
+  if (!cliente?.stripe_customer_id) return { error: "El cliente no tiene un Stripe Customer asociado." };
 
   const { data: mandato } = await supabase
     .from("mandato_cobro")
-    .select("id")
+    .select("id, stripe_payment_method_id")
     .eq("cliente_id", input.clienteId)
     .eq("estado", "activo")
     .maybeSingle();
@@ -175,14 +184,44 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
     };
   }
 
+  // Cobra el downpayment por Stripe con el medio ya autorizado. Idempotency
+  // key fija por contrato: un doble clic (o un retry de red) no duplica el
+  // cargo, Stripe devuelve el mismo resultado del primer intento.
+  const stripe = getStripe();
+  let paymentIntent: Stripe.PaymentIntent;
+  try {
+    paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: Math.round(Number(contrato.downpayment_monto) * 100),
+        currency: "usd",
+        customer: cliente.stripe_customer_id,
+        payment_method: mandato.stripe_payment_method_id,
+        off_session: true,
+        confirm: true,
+      },
+      { idempotencyKey: `downpayment:${input.contratoId}` }
+    );
+  } catch (e) {
+    const mensaje = e instanceof Stripe.errors.StripeError ? e.message : "Error desconocido al cobrar.";
+    return { error: `No se pudo cobrar el downpayment: ${mensaje}` };
+  }
+
+  if (paymentIntent.status !== "succeeded") {
+    return { error: `El cobro no se completó (estado: ${paymentIntent.status}).` };
+  }
+
   const { data: actualizado, error: updateError } = await supabase
     .from("contrato")
-    .update({ downpayment_pagado: true, downpayment_verificado_por: usuario.id })
+    .update({
+      downpayment_pagado: true,
+      downpayment_verificado_por: usuario.id,
+      downpayment_stripe_payment_intent_id: paymentIntent.id,
+    })
     .eq("id", input.contratoId)
     .eq("downpayment_pagado", false)
     .select("id");
 
-  if (updateError) return { error: `No se pudo verificar: ${updateError.message}` };
+  if (updateError) return { error: `El cobro se hizo (${paymentIntent.id}) pero no se pudo guardar: ${updateError.message}` };
   if (!actualizado || actualizado.length === 0) return { error: "El downpayment ya estaba verificado." };
 
   const { data: prestamo, error: prestamoError } = await supabase

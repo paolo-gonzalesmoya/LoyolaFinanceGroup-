@@ -295,6 +295,7 @@ export type Database = {
         Row: {
           downpayment_monto: number
           downpayment_pagado: boolean
+          downpayment_stripe_payment_intent_id: string | null
           downpayment_verificado_por: string | null
           fecha_registro: string
           id: string
@@ -307,6 +308,7 @@ export type Database = {
         Insert: {
           downpayment_monto: number
           downpayment_pagado?: boolean
+          downpayment_stripe_payment_intent_id?: string | null
           downpayment_verificado_por?: string | null
           fecha_registro?: string
           id?: string
@@ -319,6 +321,7 @@ export type Database = {
         Update: {
           downpayment_monto?: number
           downpayment_pagado?: boolean
+          downpayment_stripe_payment_intent_id?: string | null
           downpayment_verificado_por?: string | null
           fecha_registro?: string
           id?: string

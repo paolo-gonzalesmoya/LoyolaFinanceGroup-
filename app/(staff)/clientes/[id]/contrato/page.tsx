@@ -94,7 +94,7 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
             </p>
             <p>
               Downpayment: ${Number(contrato.downpayment_monto).toFixed(2)} —{" "}
-              <Badge variant="outline">{contrato.downpayment_pagado ? "verificado" : "pendiente"}</Badge>
+              <Badge variant="outline">{contrato.downpayment_pagado ? "cobrado" : "pendiente"}</Badge>
             </p>
             {comision && (
               <p>
