@@ -50,6 +50,9 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    // api/cron y api/webhooks quedan afuera: son server-to-server (Vercel
+    // Cron con Bearer token, Stripe con firma), nunca llevan cookie de
+    // sesión — cada uno hace su propia autenticación en el Route Handler.
+    "/((?!_next/static|_next/image|favicon.ico|api/cron|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

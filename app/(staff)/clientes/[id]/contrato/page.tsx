@@ -50,9 +50,36 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
 
   const cuotas = prestamo
     ? (
-        await supabase.from("cuota").select("numero, fecha_vencimiento, monto").eq("prestamo_id", prestamo.id).order("numero")
+        await supabase
+          .from("cuota")
+          .select("id, numero, fecha_vencimiento, monto, estado")
+          .eq("prestamo_id", prestamo.id)
+          .order("numero")
       ).data
     : null;
+
+  const movimientos =
+    cuotas && cuotas.length > 0
+      ? (
+          await supabase
+            .from("movimiento_pago")
+            .select("id, cuota_id, tipo, monto, resultado, fecha_registro")
+            .in(
+              "cuota_id",
+              cuotas.map((c) => c.id)
+            )
+            .order("fecha_registro", { ascending: false })
+        ).data
+      : null;
+
+  const numeroPorCuotaId = new Map((cuotas ?? []).map((c) => [c.id, c.numero]));
+
+  const ESTADO_CUOTA_VARIANT = {
+    pendiente: "outline",
+    pagada: "default",
+    vencida: "secondary",
+    en_mora: "destructive",
+  } as const;
 
   const { data: avancesRaw } = contrato?.downpayment_pagado
     ? await supabase
@@ -145,6 +172,7 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
                   <TableHead>#</TableHead>
                   <TableHead>Vencimiento</TableHead>
                   <TableHead>Monto</TableHead>
+                  <TableHead>Estado</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -153,6 +181,9 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
                     <TableCell>{c.numero}</TableCell>
                     <TableCell>{c.fecha_vencimiento}</TableCell>
                     <TableCell>${Number(c.monto).toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge variant={ESTADO_CUOTA_VARIANT[c.estado]}>{c.estado.replace("_", " ")}</Badge>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -160,6 +191,42 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
             <p className="mt-2 text-sm text-muted-foreground">
               Monto financiado: ${Number(prestamo.monto_financiado).toFixed(2)}
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {movimientos && movimientos.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Historial de cobros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cuota</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Monto</TableHead>
+                  <TableHead>Resultado</TableHead>
+                  <TableHead>Fecha</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {movimientos.map((m) => (
+                  <TableRow key={m.id}>
+                    <TableCell>{numeroPorCuotaId.get(m.cuota_id) ?? "—"}</TableCell>
+                    <TableCell className="capitalize">{m.tipo}</TableCell>
+                    <TableCell>${Number(m.monto).toFixed(2)}</TableCell>
+                    <TableCell>
+                      <Badge variant={m.resultado === "exitoso" ? "default" : m.resultado === "fallido" ? "destructive" : "secondary"}>
+                        {m.resultado}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(m.fecha_registro).toLocaleString("es-PE")}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </CardContent>
         </Card>
       )}
