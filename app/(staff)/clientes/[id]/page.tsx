@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, Table
 import { RevealSsn } from "./reveal-ssn";
 import { ConsultaScore } from "./consulta-score";
 import { DecisionCredito } from "./decision-credito";
+import { EliminarCotizacionButton } from "./eliminar-cotizacion-button";
 
 export default async function ClienteDetallePage({ params }: PageProps<"/clientes/[id]">) {
   const { id } = await params;
@@ -126,6 +127,7 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
               {solicitud?.motivo_rechazo && (
                 <p className="text-sm text-muted-foreground">Motivo de rechazo: {solicitud.motivo_rechazo}</p>
               )}
+              <EliminarCotizacionButton clienteId={cliente.id} cotizacionId={cotizacion.id} />
             </>
           )}
         </CardContent>

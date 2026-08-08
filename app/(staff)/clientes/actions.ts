@@ -133,6 +133,36 @@ export async function crearCotizacion(
   redirect(`/clientes/${clienteId}`);
 }
 
+export async function eliminarCotizacion(clienteId: string, cotizacionId: string) {
+  const usuario = await requireAdmin();
+  if (!usuario) return { error: "No autorizado." };
+
+  const supabase = await createClient();
+
+  const { data: solicitud } = await supabase
+    .from("solicitud_credito")
+    .select("id")
+    .eq("cotizacion_id", cotizacionId)
+    .maybeSingle();
+
+  if (solicitud) {
+    const { data: contrato } = await supabase.from("contrato").select("id").eq("solicitud_id", solicitud.id).maybeSingle();
+    if (contrato) {
+      return { error: "Esta cotización ya tiene un contrato asociado — no se puede eliminar así." };
+    }
+
+    const { error: solicitudError } = await supabase.from("solicitud_credito").delete().eq("id", solicitud.id);
+    if (solicitudError) return { error: `No se pudo eliminar la solicitud de crédito: ${solicitudError.message}` };
+  }
+
+  // item_cotizacion cae solo (on delete cascade).
+  const { error } = await supabase.from("cotizacion").delete().eq("id", cotizacionId);
+  if (error) return { error: `No se pudo eliminar la cotización: ${error.message}` };
+
+  revalidatePath(`/clientes/${clienteId}`);
+  return { error: null };
+}
+
 export async function solicitarConsultaScore(clienteId: string) {
   const usuario = await requireAdmin();
   if (!usuario) return { error: "No autorizado." };
