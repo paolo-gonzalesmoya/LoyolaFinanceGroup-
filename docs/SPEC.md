@@ -1,6 +1,6 @@
-# Loyola Capital Group — Especificación funcional (MVP)
+# Loyola Finance Group — Especificación funcional (MVP)
 
-SaaS de financiamiento y cobranza para negocios de servicios (demo: Loyola Capital,
+SaaS de financiamiento y cobranza para negocios de servicios (demo: Loyola Finance Group,
 construcción — Roofing, Air Conditioning, Home Improvement). Ver `schema.sql` para
 las tablas reales; este documento es el contexto de negocio para generar el código.
 
