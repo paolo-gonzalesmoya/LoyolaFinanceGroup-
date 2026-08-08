@@ -664,6 +664,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "movimiento_pago_cuota_id_fkey"
+            columns: ["cuota_id"]
+            isOneToOne: false
+            referencedRelation: "saldo_cuota"
+            referencedColumns: ["cuota_id"]
+          },
+          {
             foreignKeyName: "movimiento_pago_movimiento_original_id_fkey"
             columns: ["movimiento_original_id"]
             isOneToOne: false
@@ -717,6 +724,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "cuota"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notificacion_cuota_id_fkey"
+            columns: ["cuota_id"]
+            isOneToOne: false
+            referencedRelation: "saldo_cuota"
+            referencedColumns: ["cuota_id"]
           },
         ]
       }
@@ -895,7 +909,15 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      saldo_cuota: {
+        Row: {
+          cuota_id: string | null
+          monto_cuota: number | null
+          saldo_pendiente: number | null
+          total_cobrado: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       current_cliente_id: { Args: never; Returns: string }

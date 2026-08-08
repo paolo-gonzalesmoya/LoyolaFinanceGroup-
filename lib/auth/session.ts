@@ -18,3 +18,22 @@ export const getStaffUser = cache(async () => {
 
   return data;
 });
+
+// DAL: única fuente de verdad para "quién es el cliente logueado en el
+// portal". Separada de getStaffUser a propósito: son dos roles distintos
+// aunque compartan la misma tabla auth.users de Supabase — una sesión solo
+// va a matchear una de las dos consultas, nunca ambas.
+export const getClienteUser = cache(async () => {
+  const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getClaims();
+  const sub = auth?.claims?.sub;
+  if (!sub) return null;
+
+  const { data } = await supabase
+    .from("cliente")
+    .select("id, nombre, correo")
+    .eq("auth_user_id", sub)
+    .single();
+
+  return data;
+});

@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { getStaffUser } from "@/lib/auth/session";
 import { encryptSsn, decryptSsn } from "@/lib/crypto/ssn";
 import { consultarScore } from "@/lib/experian/client";
@@ -259,5 +260,31 @@ export async function decidirCredito(
   });
 
   revalidatePath(`/clientes/${input.clienteId}`);
+  return { error: null };
+}
+
+export async function invitarClientePortal(clienteId: string) {
+  const usuario = await requireAdmin();
+  if (!usuario) return { error: "No autorizado." };
+
+  const supabase = await createClient();
+  const { data: cliente } = await supabase.from("cliente").select("correo, auth_user_id").eq("id", clienteId).single();
+
+  if (!cliente) return { error: "Cliente no encontrado." };
+  if (!cliente.correo) return { error: "El cliente no tiene un correo registrado." };
+  if (cliente.auth_user_id) return { error: "Este cliente ya tiene acceso al portal." };
+
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.inviteUserByEmail(cliente.correo, {
+    redirectTo: `${siteUrl}/auth/callback?next=/portal/activar`,
+  });
+
+  if (error || !data.user) return { error: `No se pudo enviar la invitación: ${error?.message ?? "error desconocido"}` };
+
+  const { error: updateError } = await supabase.from("cliente").update({ auth_user_id: data.user.id }).eq("id", clienteId);
+  if (updateError) return { error: `La invitación se envió pero no se pudo enlazar la cuenta: ${updateError.message}` };
+
+  revalidatePath(`/clientes/${clienteId}`);
   return { error: null };
 }

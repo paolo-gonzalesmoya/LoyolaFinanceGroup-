@@ -11,6 +11,7 @@ import { RevealSsn } from "./reveal-ssn";
 import { ConsultaScore } from "./consulta-score";
 import { DecisionCredito } from "./decision-credito";
 import { EliminarCotizacionButton } from "./eliminar-cotizacion-button";
+import { InvitarPortalButton } from "./invitar-portal";
 
 export default async function ClienteDetallePage({ params }: PageProps<"/clientes/[id]">) {
   const { id } = await params;
@@ -73,6 +74,14 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
               "—"
             )}
           </p>
+          <div className="flex items-center gap-2 pt-1">
+            <span className="text-muted-foreground">Portal del cliente:</span>
+            {cliente.auth_user_id ? (
+              <Badge variant="outline">Activo</Badge>
+            ) : (
+              <InvitarPortalButton clienteId={cliente.id} />
+            )}
+          </div>
         </CardContent>
       </Card>
 
