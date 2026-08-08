@@ -112,6 +112,16 @@ export default async function LeadDetallePage({ params }: PageProps<"/leads/[id]
         </Button>
       )}
 
+      {usuario.rol === "admin" && !clienteExistente && lead.estado !== "en_proceso" && (
+        <p className="text-sm text-muted-foreground">
+          {lead.estado === "activo" && "Todavía no se puede convertir: ningún vendedor lo reclamó."}
+          {lead.estado === "asignado" &&
+            "Todavía no se puede convertir: falta que el vendedor complete los datos del cliente (arriba)."}
+          {(lead.estado === "convertido" || lead.estado === "descartado") &&
+            `Este lead está ${lead.estado} y ya no se puede convertir.`}
+        </p>
+      )}
+
       {puedeConvertir && <ConvertirClienteForm leadId={lead.id} />}
     </div>
   );
