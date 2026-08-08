@@ -45,7 +45,7 @@ export function CompletarDatosForm({ leadId, campos }: { leadId: string; campos:
               <Label htmlFor={name}>{etiqueta}</Label>
               <Select name={name}>
                 <SelectTrigger id={name} className="w-full">
-                  <SelectValue placeholder="Elegí una opción" />
+                  <SelectValue placeholder="Elige una opción" />
                 </SelectTrigger>
                 <SelectContent>
                   {(campo.opciones ?? []).map((opcion) => (

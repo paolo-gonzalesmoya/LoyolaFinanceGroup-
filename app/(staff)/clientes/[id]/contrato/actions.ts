@@ -93,7 +93,7 @@ export async function crearContrato(
 
   if (!NUMERO_CUOTAS_VALIDAS.includes(numeroCuotas)) return { error: "Número de cuotas inválido." };
   if (!tasaMensual || tasaMensual <= 0) return { error: "La tasa mensual debe ser mayor a 0." };
-  if (!vendedorId) return { error: "Seleccioná un vendedor." };
+  if (!vendedorId) return { error: "Selecciona un vendedor." };
   if (!porcentajeComision || porcentajeComision <= 0) return { error: "El porcentaje de comisión debe ser mayor a 0." };
 
   const supabase = await createClient();
@@ -274,7 +274,7 @@ export async function registrarAvanceObra(
   const foto = formData.get("foto");
 
   if (!ETAPAS_VALIDAS.includes(etapa as (typeof ETAPAS_VALIDAS)[number])) {
-    return { error: "Elegí una etapa válida." };
+    return { error: "Elige una etapa válida." };
   }
 
   const supabase = await createClient();

@@ -49,7 +49,7 @@ export function NuevoCampoForm({ categorias }: { categorias: { id: string; nombr
               <SelectTrigger id="categoria_id" className="w-full">
                 <SelectValue>
                   {(value: string | null) =>
-                    categorias.find((categoria) => categoria.id === value)?.nombre ?? "Elegí una categoría"
+                    categorias.find((categoria) => categoria.id === value)?.nombre ?? "Elige una categoría"
                   }
                 </SelectValue>
               </SelectTrigger>

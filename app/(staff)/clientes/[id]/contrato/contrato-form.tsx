@@ -71,7 +71,7 @@ export function ContratoForm({
               <Select name="vendedor_id" defaultValue={vendedorIdSugerido ?? undefined}>
                 <SelectTrigger id="vendedor_id" className="w-full">
                   <SelectValue>
-                    {(value: string | null) => vendedores.find((v) => v.id === value)?.nombre ?? "Elegí un vendedor"}
+                    {(value: string | null) => vendedores.find((v) => v.id === value)?.nombre ?? "Elige un vendedor"}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>

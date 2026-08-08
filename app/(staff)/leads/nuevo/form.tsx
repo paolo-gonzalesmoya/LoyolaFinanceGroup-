@@ -26,7 +26,7 @@ export function NuevoLeadForm({ categorias }: { categorias: { id: string; nombre
               <SelectTrigger id="categoria_id" className="w-full">
                 <SelectValue>
                   {(value: string | null) =>
-                    categorias.find((categoria) => categoria.id === value)?.nombre ?? "Elegí una categoría"
+                    categorias.find((categoria) => categoria.id === value)?.nombre ?? "Elige una categoría"
                   }
                 </SelectValue>
               </SelectTrigger>

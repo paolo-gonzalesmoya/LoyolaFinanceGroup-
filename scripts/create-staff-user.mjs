@@ -59,5 +59,5 @@ if (dbError) {
 
 console.log(`Creado: ${nombre} <${email}> (${rol}) — usuario.id=${usuarioRow.id}`);
 if (generated) {
-  console.log(`Password temporal (guardala, no se vuelve a mostrar): ${password}`);
+  console.log(`Password temporal (guárdala, no se vuelve a mostrar): ${password}`);
 }

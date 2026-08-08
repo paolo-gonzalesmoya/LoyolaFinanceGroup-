@@ -25,7 +25,7 @@ export async function convertirACliente(
   const autorizado = formData.get("autorizado") === "on";
   const ssnItn = String(formData.get("ssn_itn") ?? "").trim();
 
-  if (!autorizado) return { error: "Confirmá que el cliente autorizó la captura de sus datos y la consulta de crédito." };
+  if (!autorizado) return { error: "Confirma que el cliente autorizó la captura de sus datos y la consulta de crédito." };
   if (!ssnItn) return { error: "El SSN/ITN es obligatorio." };
 
   const supabase = await createClient();
@@ -102,7 +102,7 @@ export async function crearCotizacion(
     .filter((item) => item.descripcion !== "" && item.precio_unitario > 0);
 
   if (items.length === 0) {
-    return { error: "Agregá al menos un ítem con descripción y precio unitario mayor a 0." };
+    return { error: "Agrega al menos un ítem con descripción y precio unitario mayor a 0." };
   }
 
   const supabase = await createClient();

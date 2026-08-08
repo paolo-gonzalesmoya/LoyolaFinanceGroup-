@@ -75,7 +75,7 @@ export async function crearUsuarioStaff(
   const rol = String(formData.get("rol") ?? "");
 
   if (!nombre || !correo || !["admin", "vendedor"].includes(rol)) {
-    return { error: "Completá nombre, correo y rol.", password: null };
+    return { error: "Completa nombre, correo y rol.", password: null };
   }
 
   const admin = createAdminClient();
