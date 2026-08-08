@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { MandatoCobro } from "./mandato-cobro";
 import { ContratoForm } from "./contrato-form";
 import { VerificarDownpaymentButton } from "./verificar-downpayment";
+import { AvanceObraForm, AvanceObraTimeline } from "./avance-obra";
+import { getAvanceObraFotoSignedUrl } from "@/lib/storage/avance-obra-fotos";
 
 export default async function ContratoPage({ params }: PageProps<"/clientes/[id]/contrato">) {
   const { id } = await params;
@@ -50,6 +52,26 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
     ? (
         await supabase.from("cuota").select("numero, fecha_vencimiento, monto").eq("prestamo_id", prestamo.id).order("numero")
       ).data
+    : null;
+
+  const { data: avancesRaw } = contrato?.downpayment_pagado
+    ? await supabase
+        .from("avance_obra")
+        .select("id, etapa, descripcion, foto_url, fecha_registro")
+        .eq("contrato_id", contrato.id)
+        .order("fecha_registro", { ascending: false })
+    : { data: null };
+
+  const avances = avancesRaw
+    ? await Promise.all(
+        avancesRaw.map(async (avance) => ({
+          id: avance.id,
+          etapa: avance.etapa,
+          descripcion: avance.descripcion,
+          fecha_registro: avance.fecha_registro,
+          fotoUrl: await getAvanceObraFotoSignedUrl(avance.foto_url),
+        }))
+      )
     : null;
 
   return (
@@ -138,6 +160,18 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
             <p className="mt-2 text-sm text-muted-foreground">
               Monto financiado: ${Number(prestamo.monto_financiado).toFixed(2)}
             </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {contrato?.downpayment_pagado && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Avance de obra</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <AvanceObraTimeline avances={avances ?? []} />
+            <AvanceObraForm clienteId={cliente.id} contratoId={contrato.id} />
           </CardContent>
         </Card>
       )}

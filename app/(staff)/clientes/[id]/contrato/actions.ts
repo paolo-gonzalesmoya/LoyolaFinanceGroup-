@@ -7,6 +7,7 @@ import { getStaffUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/client";
 import { generarCronograma } from "@/lib/prestamos/amortizacion";
 import { TOPE_FINANCIAMIENTO_USD } from "@/lib/credito/reglas";
+import { subirFotoAvanceObra } from "@/lib/storage/avance-obra-fotos";
 
 const NUMERO_CUOTAS_VALIDAS = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
 
@@ -252,6 +253,50 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
 
   if (cuotasError) {
     return { error: `El préstamo se creó pero falló el cronograma: ${cuotasError.message}` };
+  }
+
+  revalidatePath(`/clientes/${input.clienteId}/contrato`);
+  return { error: null };
+}
+
+const ETAPAS_VALIDAS = ["inicial", "en_proceso", "final"] as const;
+
+export async function registrarAvanceObra(
+  input: { clienteId: string; contratoId: string },
+  _prevState: { error: string | null } | undefined,
+  formData: FormData
+) {
+  const usuario = await requireAdmin();
+  if (!usuario) return { error: "No autorizado." };
+
+  const etapa = String(formData.get("etapa") ?? "");
+  const descripcion = String(formData.get("descripcion") ?? "").trim() || null;
+  const foto = formData.get("foto");
+
+  if (!ETAPAS_VALIDAS.includes(etapa as (typeof ETAPAS_VALIDAS)[number])) {
+    return { error: "Elegí una etapa válida." };
+  }
+
+  const supabase = await createClient();
+
+  const { data: avance, error } = await supabase
+    .from("avance_obra")
+    .insert({
+      contrato_id: input.contratoId,
+      etapa: etapa as (typeof ETAPAS_VALIDAS)[number],
+      descripcion,
+      registrado_por: usuario.id,
+    })
+    .select("id")
+    .single();
+
+  if (error || !avance) {
+    return { error: `No se pudo registrar el avance: ${error?.message ?? "error desconocido"}` };
+  }
+
+  if (foto instanceof File && foto.size > 0) {
+    const path = await subirFotoAvanceObra(supabase, input.contratoId, avance.id, foto);
+    if (path) await supabase.from("avance_obra").update({ foto_url: path }).eq("id", avance.id);
   }
 
   revalidatePath(`/clientes/${input.clienteId}/contrato`);

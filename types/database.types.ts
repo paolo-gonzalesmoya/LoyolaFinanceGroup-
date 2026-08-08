@@ -88,6 +88,51 @@ export type Database = {
           },
         ]
       }
+      avance_obra: {
+        Row: {
+          contrato_id: string
+          descripcion: string | null
+          etapa: Database["public"]["Enums"]["etapa_avance_obra"]
+          fecha_registro: string
+          foto_url: string | null
+          id: string
+          registrado_por: string
+        }
+        Insert: {
+          contrato_id: string
+          descripcion?: string | null
+          etapa: Database["public"]["Enums"]["etapa_avance_obra"]
+          fecha_registro?: string
+          foto_url?: string | null
+          id?: string
+          registrado_por: string
+        }
+        Update: {
+          contrato_id?: string
+          descripcion?: string | null
+          etapa?: Database["public"]["Enums"]["etapa_avance_obra"]
+          fecha_registro?: string
+          foto_url?: string | null
+          id?: string
+          registrado_por?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "avance_obra_contrato_id_fkey"
+            columns: ["contrato_id"]
+            isOneToOne: false
+            referencedRelation: "contrato"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "avance_obra_registrado_por_fkey"
+            columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campo_servicio: {
         Row: {
           categoria_id: string
@@ -812,6 +857,7 @@ export type Database = {
         | "descartado"
       estado_mandato: "activo" | "inactivo"
       estado_prestamo: "activo" | "pagado" | "cancelado"
+      etapa_avance_obra: "inicial" | "en_proceso" | "final"
       resultado_movimiento: "exitoso" | "reintento" | "fallido"
       rol_usuario: "admin" | "vendedor"
       tipo_dato_campo: "numero" | "texto" | "seleccion"
@@ -963,6 +1009,7 @@ export const Constants = {
       ],
       estado_mandato: ["activo", "inactivo"],
       estado_prestamo: ["activo", "pagado", "cancelado"],
+      etapa_avance_obra: ["inicial", "en_proceso", "final"],
       resultado_movimiento: ["exitoso", "reintento", "fallido"],
       rol_usuario: ["admin", "vendedor"],
       tipo_dato_campo: ["numero", "texto", "seleccion"],
