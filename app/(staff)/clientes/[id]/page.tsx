@@ -159,6 +159,10 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
           </CardContent>
         </Card>
       )}
+
+      {solicitud?.decision === "aprobado" && (
+        <Button render={<Link href={`/clientes/${cliente.id}/contrato`} />}>Ir a contrato</Button>
+      )}
     </div>
   );
 }

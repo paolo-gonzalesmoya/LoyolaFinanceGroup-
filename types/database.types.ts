@@ -155,6 +155,7 @@ export type Database = {
           nombre: string
           registrado_por: string
           ssn_itn_cifrado: string | null
+          stripe_customer_id: string | null
           telefono: string | null
         }
         Insert: {
@@ -167,6 +168,7 @@ export type Database = {
           nombre: string
           registrado_por: string
           ssn_itn_cifrado?: string | null
+          stripe_customer_id?: string | null
           telefono?: string | null
         }
         Update: {
@@ -179,6 +181,7 @@ export type Database = {
           nombre?: string
           registrado_por?: string
           ssn_itn_cifrado?: string | null
+          stripe_customer_id?: string | null
           telefono?: string | null
         }
         Relationships: [
