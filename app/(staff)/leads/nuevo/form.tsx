@@ -24,7 +24,11 @@ export function NuevoLeadForm({ categorias }: { categorias: { id: string; nombre
             <Label htmlFor="categoria_id">Categoría</Label>
             <Select name="categoria_id" required>
               <SelectTrigger id="categoria_id" className="w-full">
-                <SelectValue placeholder="Elegí una categoría" />
+                <SelectValue>
+                  {(value: string | null) =>
+                    categorias.find((categoria) => categoria.id === value)?.nombre ?? "Elegí una categoría"
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {categorias.map((categoria) => (

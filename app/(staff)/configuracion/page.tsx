@@ -4,18 +4,20 @@ import { getStaffUser } from "@/lib/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NuevaCategoriaForm, NuevoCampoForm } from "./forms";
+import { NuevoUsuarioForm, ListaUsuarios } from "./usuarios-forms";
 
 export default async function ConfiguracionPage() {
   const usuario = await getStaffUser();
   if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
 
   const supabase = await createClient();
-  const [{ data: categorias }, { data: campos }] = await Promise.all([
+  const [{ data: categorias }, { data: campos }, { data: usuarios }] = await Promise.all([
     supabase.from("categoria_servicio").select("id, nombre").order("nombre"),
     supabase
       .from("campo_servicio")
       .select("id, categoria_id, nombre_campo, unidad_medida, tipo_dato")
       .order("nombre_campo"),
+    supabase.from("usuario").select("id, nombre, correo, rol, activo").order("nombre"),
   ]);
 
   const camposPorCategoria = new Map<string, typeof campos>();
@@ -55,6 +57,17 @@ export default async function ConfiguracionPage() {
 
       <NuevaCategoriaForm />
       <NuevoCampoForm categorias={categorias ?? []} />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Usuarios de staff</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ListaUsuarios usuarios={usuarios ?? []} />
+        </CardContent>
+      </Card>
+
+      <NuevoUsuarioForm />
     </div>
   );
 }

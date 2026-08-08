@@ -47,7 +47,11 @@ export function NuevoCampoForm({ categorias }: { categorias: { id: string; nombr
             <Label htmlFor="categoria_id">Categoría</Label>
             <Select name="categoria_id" required>
               <SelectTrigger id="categoria_id" className="w-full">
-                <SelectValue placeholder="Elegí una categoría" />
+                <SelectValue>
+                  {(value: string | null) =>
+                    categorias.find((categoria) => categoria.id === value)?.nombre ?? "Elegí una categoría"
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {categorias.map((categoria) => (
@@ -74,7 +78,11 @@ export function NuevoCampoForm({ categorias }: { categorias: { id: string; nombr
             <Label htmlFor="tipo_dato">Tipo de dato</Label>
             <Select name="tipo_dato" defaultValue="numero" onValueChange={(value) => setTipoDato(value ?? "numero")}>
               <SelectTrigger id="tipo_dato" className="w-full">
-                <SelectValue />
+                <SelectValue>
+                  {(value: string | null) =>
+                    ({ numero: "Número", texto: "Texto", seleccion: "Selección" })[value ?? "numero"] ?? "Número"
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="numero">Número</SelectItem>
