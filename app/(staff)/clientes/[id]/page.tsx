@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableFooter, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { RevealSsn } from "./reveal-ssn";
+import { ConsultaScore } from "./consulta-score";
+import { DecisionCredito } from "./decision-credito";
 
 export default async function ClienteDetallePage({ params }: PageProps<"/clientes/[id]">) {
   const { id } = await params;
@@ -24,13 +26,22 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
     .eq("cliente_id", id)
     .maybeSingle();
 
-  const [{ data: items }, { data: solicitud }] = await Promise.all([
+  const [{ data: items }, { data: solicitud }, { data: consultas }] = await Promise.all([
     cotizacion
       ? supabase.from("item_cotizacion").select("*").eq("cotizacion_id", cotizacion.id)
       : Promise.resolve({ data: null }),
     cotizacion
-      ? supabase.from("solicitud_credito").select("decision, motivo_rechazo").eq("cotizacion_id", cotizacion.id).maybeSingle()
+      ? supabase
+          .from("solicitud_credito")
+          .select("id, decision, motivo_rechazo")
+          .eq("cotizacion_id", cotizacion.id)
+          .maybeSingle()
       : Promise.resolve({ data: null }),
+    supabase
+      .from("consulta_score")
+      .select("id, score, ingresos_mensuales, capacidad_pago, fecha_registro")
+      .eq("cliente_id", id)
+      .order("fecha_registro", { ascending: false }),
   ]);
 
   const total = (items ?? []).reduce((suma, item) => suma + Number(item.subtotal), 0);
@@ -112,10 +123,42 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
                   </>
                 )}
               </div>
+              {solicitud?.motivo_rechazo && (
+                <p className="text-sm text-muted-foreground">Motivo de rechazo: {solicitud.motivo_rechazo}</p>
+              )}
             </>
           )}
         </CardContent>
       </Card>
+
+      {cotizacion?.requiere_financiamiento && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Consulta de score (Experian)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConsultaScore clienteId={cliente.id} consultas={consultas ?? []} />
+          </CardContent>
+        </Card>
+      )}
+
+      {solicitud?.decision === "pendiente" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Decisión de crédito</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DecisionCredito
+              input={{
+                clienteId: cliente.id,
+                leadId: cliente.lead_id,
+                solicitudId: solicitud.id,
+                cotizacionId: cotizacion!.id,
+              }}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

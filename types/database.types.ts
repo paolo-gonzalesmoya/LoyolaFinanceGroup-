@@ -39,6 +39,55 @@ export type Database = {
   }
   public: {
     Tables: {
+      auditoria: {
+        Row: {
+          cliente_id: string | null
+          fecha_registro: string
+          id: string
+          solicitud_credito_id: string | null
+          tipo: Database["public"]["Enums"]["tipo_evento_auditoria"]
+          usuario_id: string
+        }
+        Insert: {
+          cliente_id?: string | null
+          fecha_registro?: string
+          id?: string
+          solicitud_credito_id?: string | null
+          tipo: Database["public"]["Enums"]["tipo_evento_auditoria"]
+          usuario_id: string
+        }
+        Update: {
+          cliente_id?: string | null
+          fecha_registro?: string
+          id?: string
+          solicitud_credito_id?: string | null
+          tipo?: Database["public"]["Enums"]["tipo_evento_auditoria"]
+          usuario_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auditoria_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "cliente"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auditoria_solicitud_credito_id_fkey"
+            columns: ["solicitud_credito_id"]
+            isOneToOne: false
+            referencedRelation: "solicitud_credito"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auditoria_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campo_servicio: {
         Row: {
           categoria_id: string
@@ -760,6 +809,11 @@ export type Database = {
       resultado_movimiento: "exitoso" | "reintento" | "fallido"
       rol_usuario: "admin" | "vendedor"
       tipo_dato_campo: "numero" | "texto" | "seleccion"
+      tipo_evento_auditoria:
+        | "ver_ssn"
+        | "consulta_score"
+        | "aprobacion_credito"
+        | "rechazo_credito"
       tipo_movimiento: "cobro" | "mora" | "reembolso" | "ajuste"
     }
     CompositeTypes: {
@@ -906,6 +960,12 @@ export const Constants = {
       resultado_movimiento: ["exitoso", "reintento", "fallido"],
       rol_usuario: ["admin", "vendedor"],
       tipo_dato_campo: ["numero", "texto", "seleccion"],
+      tipo_evento_auditoria: [
+        "ver_ssn",
+        "consulta_score",
+        "aprobacion_credito",
+        "rechazo_credito",
+      ],
       tipo_movimiento: ["cobro", "mora", "reembolso", "ajuste"],
     },
   },
