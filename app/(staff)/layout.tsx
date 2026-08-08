@@ -14,7 +14,12 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   const links = [
     { href: "/dashboard", label: "Dashboard" },
     { href: "/leads", label: "Leads" },
-    ...(usuario.rol === "admin" ? [{ href: "/configuracion", label: "Configuración" }] : []),
+    ...(usuario.rol === "admin"
+      ? [
+          { href: "/clientes", label: "Clientes" },
+          { href: "/configuracion", label: "Configuración" },
+        ]
+      : []),
   ];
 
   return (

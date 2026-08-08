@@ -1,11 +1,14 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getStaffUser } from "@/lib/auth/session";
 import { getFotoSignedUrl } from "@/lib/storage/lead-fotos";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { ReclamarButton } from "./reclamar-button";
 import { CompletarDatosForm } from "./completar-form";
+import { ConvertirClienteForm } from "./convertir-cliente-form";
 
 export default async function LeadDetallePage({ params }: PageProps<"/leads/[id]">) {
   const { id } = await params;
@@ -17,22 +20,27 @@ export default async function LeadDetallePage({ params }: PageProps<"/leads/[id]
   const { data: lead } = await supabase.from("lead").select("*").eq("id", id).single();
   if (!lead) notFound();
 
-  const [{ data: categoria }, { data: campos }, { data: valores }, fotoDniUrl, fotoReciboUrl] = await Promise.all([
-    supabase.from("categoria_servicio").select("nombre").eq("id", lead.categoria_id).single(),
-    supabase
-      .from("campo_servicio")
-      .select("id, nombre_campo, unidad_medida, tipo_dato, opciones")
-      .eq("categoria_id", lead.categoria_id),
-    supabase.from("valor_campo_lead").select("campo_servicio_id, valor").eq("lead_id", lead.id),
-    getFotoSignedUrl(lead.foto_dni_url),
-    getFotoSignedUrl(lead.foto_recibo_url),
-  ]);
+  const [{ data: categoria }, { data: campos }, { data: valores }, fotoDniUrl, fotoReciboUrl, { data: clienteExistente }] =
+    await Promise.all([
+      supabase.from("categoria_servicio").select("nombre").eq("id", lead.categoria_id).single(),
+      supabase
+        .from("campo_servicio")
+        .select("id, nombre_campo, unidad_medida, tipo_dato, opciones")
+        .eq("categoria_id", lead.categoria_id),
+      supabase.from("valor_campo_lead").select("campo_servicio_id, valor").eq("lead_id", lead.id),
+      getFotoSignedUrl(lead.foto_dni_url),
+      getFotoSignedUrl(lead.foto_recibo_url),
+      usuario.rol === "admin"
+        ? supabase.from("cliente").select("id").eq("lead_id", lead.id).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
 
   const valorPorCampo = new Map((valores ?? []).map((v) => [v.campo_servicio_id, v.valor]));
 
   const puedeReclamar = usuario.rol === "vendedor" && lead.estado === "activo";
   const puedeCompletarDatos =
     lead.estado === "asignado" && (usuario.rol === "admin" || lead.vendedor_id === usuario.id);
+  const puedeConvertir = usuario.rol === "admin" && lead.estado === "en_proceso" && !clienteExistente;
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -97,6 +105,14 @@ export default async function LeadDetallePage({ params }: PageProps<"/leads/[id]
       )}
 
       {puedeReclamar && <ReclamarButton leadId={lead.id} />}
+
+      {clienteExistente && (
+        <Button render={<Link href={`/clientes/${clienteExistente.id}`} />} variant="outline">
+          Ver cliente
+        </Button>
+      )}
+
+      {puedeConvertir && <ConvertirClienteForm leadId={lead.id} />}
     </div>
   );
 }
