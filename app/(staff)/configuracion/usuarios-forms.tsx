@@ -77,7 +77,9 @@ function PasswordGenerada({ password }: { password: string }) {
           {copiado ? "Copiada" : "Copiar"}
         </Button>
       </div>
-      <p className="mt-1 text-muted-foreground">Pasásela a la persona por un canal seguro; que la cambie en el primer login.</p>
+      <p className="mt-1 text-muted-foreground">
+        Pasásela a la persona por un canal seguro; que la cambie apenas entre desde “Mi cuenta” (arriba a la derecha).
+      </p>
     </div>
   );
 }

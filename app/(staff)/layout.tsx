@@ -36,9 +36,9 @@ export default async function StaffLayout({ children }: { children: React.ReactN
           </nav>
         </div>
         <div className="flex items-center gap-3 text-sm">
-          <span className="text-muted-foreground">
+          <Link href="/cuenta" className="text-muted-foreground hover:text-foreground">
             {usuario.nombre} · {usuario.rol}
-          </span>
+          </Link>
           <form action={signOut}>
             <Button type="submit" variant="ghost" size="sm">
               Salir
