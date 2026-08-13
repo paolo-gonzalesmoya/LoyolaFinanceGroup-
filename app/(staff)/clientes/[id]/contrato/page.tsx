@@ -39,6 +39,26 @@ export default async function ContratoPage({ params, searchParams }: PageProps<"
 
   const total = Number(solicitud.monto_solicitado);
 
+  // Si no vino una tasa elegida desde el simulador (query params), se
+  // sugiere igual la del nivel que matchea el score más reciente del
+  // cliente — el admin la ve seteada de una pero la puede editar.
+  let tasaPorScore: string | null = null;
+  if (!contrato && !tasaSugerida) {
+    const [{ data: consulta }, { data: niveles }] = await Promise.all([
+      supabase
+        .from("consulta_score")
+        .select("score")
+        .eq("cliente_id", id)
+        .order("fecha_registro", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase.from("niveles_score").select("score_min, score_max, tasa_interes").eq("activo", true).order("score_min"),
+    ]);
+    const score = consulta?.score;
+    const nivel = score != null ? niveles?.find((n) => score >= n.score_min && score <= n.score_max) : undefined;
+    tasaPorScore = nivel ? String(nivel.tasa_interes) : null;
+  }
+
   const { data: prestamo } = contrato
     ? await supabase.from("prestamo").select("id, monto_financiado, estado").eq("contrato_id", contrato.id).maybeSingle()
     : { data: null };
@@ -101,7 +121,7 @@ export default async function ContratoPage({ params, searchParams }: PageProps<"
               solicitudId={solicitud.id}
               total={total}
               cuotasSugeridas={cuotasSugeridas}
-              tasaSugerida={tasaSugerida}
+              tasaSugerida={tasaSugerida ?? tasaPorScore}
             />
           </CardContent>
         </Card>

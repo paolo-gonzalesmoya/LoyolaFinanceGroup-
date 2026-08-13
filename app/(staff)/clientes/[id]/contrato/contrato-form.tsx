@@ -51,7 +51,9 @@ export function ContratoForm({
             {financiado.toFixed(2)}
           </p>
           {tasaSugerida && (
-            <p className="text-sm text-muted-foreground">Cuotas y tasa precargadas desde la simulación que elegiste.</p>
+            <p className="text-sm text-muted-foreground">
+              Tasa precargada según el score del cliente (o la simulación que elegiste) — puedes editarla.
+            </p>
           )}
 
           <div className="grid grid-cols-2 gap-4">
