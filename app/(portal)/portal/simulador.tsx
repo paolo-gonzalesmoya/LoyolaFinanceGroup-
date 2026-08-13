@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { generarCronograma } from "@/lib/prestamos/amortizacion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -11,10 +12,14 @@ const PLAZOS = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
 
 type Nivel = { id: string; nombre_nivel: string; score_min: number; score_max: number; tasa_interes: number };
 
-export function Simulador({ niveles }: { niveles: Nivel[] }) {
+export function Simulador({ niveles, scoreReal }: { niveles: Nivel[]; scoreReal: number | null }) {
+  // Si ya tenemos un score real (consulta_score, vía Experian), el nivel se
+  // matchea solo contra la tabla — no hace falta que el cliente adivine.
+  const nivelPorScore = scoreReal != null ? niveles.find((n) => scoreReal >= n.score_min && scoreReal <= n.score_max) : undefined;
+
   const [monto, setMonto] = useState("5000");
-  const [nivelId, setNivelId] = useState(niveles[0]?.id ?? "");
-  const [tasa, setTasa] = useState(String(niveles[0]?.tasa_interes ?? ""));
+  const [nivelId, setNivelId] = useState(nivelPorScore?.id ?? niveles[0]?.id ?? "");
+  const [tasa, setTasa] = useState(String(nivelPorScore?.tasa_interes ?? niveles[0]?.tasa_interes ?? ""));
   const [plazosElegidos, setPlazosElegidos] = useState<number[]>([24]);
 
   const nivel = niveles.find((n) => n.id === nivelId);
@@ -51,9 +56,19 @@ export function Simulador({ niveles }: { niveles: Nivel[] }) {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-muted-foreground">
-          Esto es un <b>estimado</b>, no una aprobación — tu tasa real depende de tu score una vez que confirmemos tu
-          identidad y evaluemos tu solicitud.
+          Esto es un <b>estimado</b>, no una aprobación.
         </p>
+
+        {scoreReal != null && (
+          <p className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="text-muted-foreground">Tu score:</span> <b>{scoreReal}</b>
+            {nivelPorScore ? (
+              <Badge variant="outline">Nivel {nivelPorScore.nombre_nivel}</Badge>
+            ) : (
+              <span className="text-muted-foreground">(sin nivel configurado para este rango todavía)</span>
+            )}
+          </p>
+        )}
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
@@ -61,7 +76,7 @@ export function Simulador({ niveles }: { niveles: Nivel[] }) {
             <Input id="sim_monto" type="number" min="0" step="0.01" value={monto} onChange={(e) => setMonto(e.target.value)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="sim_nivel">Nivel de score estimado</Label>
+            <Label htmlFor="sim_nivel">Nivel de score {scoreReal == null && "(estimado)"}</Label>
             <Select name="sim_nivel" value={nivelId} onValueChange={(v) => v && onNivelChange(v)}>
               <SelectTrigger id="sim_nivel" className="w-full">
                 <SelectValue>{() => (nivel ? `${nivel.nombre_nivel} (${nivel.score_min}–${nivel.score_max})` : "Elige un nivel")}</SelectValue>
@@ -78,7 +93,9 @@ export function Simulador({ niveles }: { niveles: Nivel[] }) {
           <div className="space-y-1.5">
             <Label htmlFor="sim_tasa">Tasa mensual (%)</Label>
             <Input id="sim_tasa" type="number" min="0" step="0.01" value={tasa} onChange={(e) => setTasa(e.target.value)} />
-            <p className="text-xs text-muted-foreground">Se sugiere sola según el nivel — puedes editarla.</p>
+            <p className="text-xs text-muted-foreground">
+              {scoreReal != null ? "Sugerida según tu score — puedes editarla." : "Sugerida según el nivel — puedes editarla."}
+            </p>
           </div>
         </div>
 
@@ -99,6 +116,10 @@ export function Simulador({ niveles }: { niveles: Nivel[] }) {
             Downpayment inicial (50%): <b className="text-foreground">${downpayment.toFixed(2)}</b> · Monto a
             financiar: <b className="text-foreground">${financiado.toFixed(2)}</b>
           </p>
+        )}
+
+        {tasaNum <= 0 && montoNum > 0 && (
+          <p className="text-sm text-destructive">Elige un nivel o ingresa una tasa mayor a 0 para ver la simulación.</p>
         )}
 
         {resultados.length > 0 && (

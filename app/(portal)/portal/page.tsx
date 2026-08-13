@@ -32,16 +32,15 @@ export default async function PortalPage() {
   // Sin solicitud todavía: puede simular, y si ya está confirmado, enviar
   // su solicitud real (SSN + monto).
   if (!solicitud) {
-    const { data: niveles } = await supabase
-      .from("niveles_score")
-      .select("id, nombre_nivel, score_min, score_max, tasa_interes")
-      .eq("activo", true)
-      .order("score_min");
+    const [{ data: niveles }, { data: consulta }] = await Promise.all([
+      supabase.from("niveles_score").select("id, nombre_nivel, score_min, score_max, tasa_interes").eq("activo", true).order("score_min"),
+      supabase.from("consulta_score").select("score").eq("cliente_id", cliente.id).order("fecha_registro", { ascending: false }).limit(1).maybeSingle(),
+    ]);
 
     return (
       <div className="max-w-2xl space-y-4">
         <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
-        <Simulador niveles={niveles ?? []} />
+        <Simulador niveles={niveles ?? []} scoreReal={consulta?.score ?? null} />
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Tu solicitud</CardTitle>
