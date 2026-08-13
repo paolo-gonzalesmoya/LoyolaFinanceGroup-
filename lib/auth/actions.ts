@@ -38,6 +38,9 @@ export async function signInCliente(_prevState: { error: string } | undefined, f
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
+  if (error?.code === "email_not_confirmed") {
+    return { error: "Todavía no confirmaste tu correo — revisa tu bandeja de entrada por el link que te mandamos al registrarte." };
+  }
   if (error || !data.user) {
     return { error: "Credenciales inválidas." };
   }

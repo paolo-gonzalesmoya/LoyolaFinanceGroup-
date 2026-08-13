@@ -6,7 +6,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptSsn } from "@/lib/crypto/ssn";
 import { TC_VERSION } from "./terminos";
 
-export async function registrarClientePublico(_prevState: { error: string } | undefined, formData: FormData) {
+type RegistroState = { error: string | null; correoEnviado?: boolean };
+
+export async function registrarClientePublico(_prevState: RegistroState | undefined, formData: FormData): Promise<RegistroState> {
   const nombre = String(formData.get("nombre") ?? "").trim();
   const correo = String(formData.get("correo") ?? "").trim().toLowerCase();
   const telefono = String(formData.get("telefono") ?? "").trim() || null;
@@ -22,18 +24,27 @@ export async function registrarClientePublico(_prevState: { error: string } | un
   if (password !== confirmarPassword) return { error: "Las contraseñas no coinciden." };
   if (!tcAceptado) return { error: "Tienes que aceptar los Términos y Condiciones para continuar." };
 
-  const admin = createAdminClient();
+  const supabase = await createClient();
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
-  const { data: authUser, error: authError } = await admin.auth.admin.createUser({
+  // signUp (no admin.createUser con email_confirm:true): así Supabase manda
+  // el correo de confirmación de verdad y no entrega sesión hasta que el
+  // cliente lo confirme. auth/callback ya sabe intercambiar ese link por
+  // una sesión real (mismo Route Handler que usa la invitación al portal).
+  const { data: signUpData, error: authError } = await supabase.auth.signUp({
     email: correo,
     password,
-    email_confirm: true,
+    options: { emailRedirectTo: `${siteUrl}/auth/callback?next=/portal` },
   });
 
-  if (authError || !authUser?.user) {
+  if (authError || !signUpData.user) {
     const yaExiste = authError?.message?.toLowerCase().includes("already registered");
-    return { error: yaExiste ? "Ya existe una cuenta con este correo." : `No se pudo crear tu cuenta: ${authError?.message ?? "error desconocido"}` };
+    return {
+      error: yaExiste ? "Ya existe una cuenta con este correo." : `No se pudo crear tu cuenta: ${authError?.message ?? "error desconocido"}`,
+    };
   }
+
+  const admin = createAdminClient();
 
   // verificado queda en false (default de la columna): un cliente que se
   // registra puede cargar su SSN/ITN de una (admin ya puede consultar su
@@ -45,20 +56,21 @@ export async function registrarClientePublico(_prevState: { error: string } | un
     telefono,
     direccion,
     ssn_itn_cifrado: encryptSsn(ssnItn),
-    auth_user_id: authUser.user.id,
+    auth_user_id: signUpData.user.id,
     registrado_por: null,
     tc_aceptado_en: new Date().toISOString(),
     tc_version: TC_VERSION,
   });
 
   if (dbError) {
-    await admin.auth.admin.deleteUser(authUser.user.id);
+    await admin.auth.admin.deleteUser(signUpData.user.id);
     return { error: `No se pudo crear tu cuenta: ${dbError.message}` };
   }
 
-  const supabase = await createClient();
-  const { error: signInError } = await supabase.auth.signInWithPassword({ email: correo, password });
-  if (signInError) redirect("/portal-login");
+  // Si el proyecto tiene desactivada la confirmación de correo, signUp ya
+  // devuelve una sesión activa — en ese caso no hay nada que confirmar,
+  // entra directo. Si no, se queda a esperar el clic en el correo.
+  if (signUpData.session) redirect("/portal");
 
-  redirect("/portal");
+  return { error: null, correoEnviado: true };
 }

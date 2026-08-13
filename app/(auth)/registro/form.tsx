@@ -10,6 +10,18 @@ import { Button } from "@/components/ui/button";
 export function RegistroForm() {
   const [state, action, pending] = useActionState(registrarClientePublico, undefined);
 
+  if (state?.correoEnviado) {
+    return (
+      <div className="space-y-2 text-sm">
+        <p className="font-medium">Revisa tu correo para confirmar tu cuenta.</p>
+        <p className="text-muted-foreground">
+          Te mandamos un link de confirmación. Una vez que lo abras vas a poder entrar al portal — de ahí en
+          adelante, un administrador confirma tu identidad para que tu solicitud avance de verdad.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <form action={action} className="space-y-4">
       <div className="space-y-1.5">

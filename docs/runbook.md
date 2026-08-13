@@ -41,7 +41,25 @@ producción). Reactivar desde el Supabase Dashboard → el proyecto → botón d
 el/los día(s) perdido(s) — el cron busca cuotas vencidas *hasta hoy*, así
 que un solo run recupera varios días atrasados de una vez.
 
-## 5. Dónde mirar en general
+## 5. Correo — confirmación de registro y notificaciones (Resend)
+
+Hay dos envíos de correo distintos, con dos mecanismos distintos:
+
+**a) Correo de confirmación al registrarse (`/registro`)** — lo manda **Supabase Auth** directamente cuando llama `supabase.auth.signUp()`, no el código de la app. Para que salga de verdad (y no del correo por defecto de Supabase, muy limitado):
+
+1. Supabase Dashboard → el proyecto → **Authentication → Emails → SMTP Settings** → activar "Enable Custom SMTP" y cargar:
+   - Host: `smtp.resend.com`
+   - Port: `465`
+   - Username: `resend`
+   - Password: la misma `RESEND_API_KEY` que está en `.env.local`
+   - Sender email / Sender name: el remitente que se quiera mostrar
+2. Confirmar que **Authentication → Sign In / Providers → Email → "Confirm email"** esté activado — si está apagado, `signUp()` da sesión de una y nunca manda el correo (la app ya se adapta a cualquiera de los dos casos, pero para que exista el correo de confirmación esto tiene que estar prendido).
+
+**b) Notificaciones de la app** (aprobación/rechazo de crédito, cobranza, reembolsos) — las manda el código directamente vía la API de Resend (`lib/notificaciones/email.ts`), usando `RESEND_API_KEY` de `.env.local`. No depende de la configuración de Supabase.
+
+**Restricción compartida por las dos:** sin un dominio propio verificado en Resend (`resend.com` → Domains), el remitente `onboarding@resend.dev` **solo entrega al correo con el que se creó la cuenta de Resend** — cualquier otro destinatario rebota en silencio. Hasta que se compre y verifique un dominio, las pruebas solo van a llegar a esa dirección. Una vez verificado el dominio: cargar `RESEND_FROM_EMAIL` en `.env.local`/Vercel con el remitente nuevo, y actualizar el mismo remitente en el SMTP Settings de Supabase.
+
+## 6. Dónde mirar en general
 
 | Qué | Dónde |
 |---|---|

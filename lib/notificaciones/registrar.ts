@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
-import { enviarEmailMock } from "./email";
+import { enviarEmail } from "./email";
 
 type Cliente = SupabaseClient<Database>;
 type TipoNotificacion = Database["public"]["Enums"]["tipo_notificacion"];
@@ -18,7 +18,7 @@ async function registrarNotificacion(
     tipo: input.tipo,
     mensaje: input.mensaje,
   });
-  await enviarEmailMock(input.correoDestino ?? null, `Loyola Finance Group — ${input.tipo.replace(/_/g, " ")}`, input.mensaje);
+  await enviarEmail(input.correoDestino ?? null, `Loyola Finance Group — ${input.tipo.replace(/_/g, " ")}`, input.mensaje);
 }
 
 // Notifica a cliente + admin el resultado de un intento de cobro (cron o

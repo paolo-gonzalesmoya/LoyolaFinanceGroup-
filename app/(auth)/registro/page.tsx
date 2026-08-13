@@ -8,7 +8,7 @@ export default function RegistroPage() {
         <CardHeader>
           <CardTitle>Crea tu cuenta</CardTitle>
           <CardDescription>
-            Regístrate para simular tu financiamiento. Tu solicitud avanza de verdad una vez que confirmemos tu identidad.
+            Confirma tu correo para entrar al portal. Tu solicitud avanza de verdad una vez que confirmemos tu identidad.
           </CardDescription>
         </CardHeader>
         <CardContent>
