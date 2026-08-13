@@ -46,7 +46,7 @@ export default async function ClientesPage() {
           {(!clientes || clientes.length === 0) && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground">
-                Sin clientes todavía — registra el primero con "Nuevo cliente".
+                Sin clientes todavía — registra el primero con “Nuevo cliente”.
               </TableCell>
             </TableRow>
           )}
