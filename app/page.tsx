@@ -60,7 +60,10 @@ export default function Home() {
         </div>
       </header>
 
-      <section className="bg-[#101d33]">
+      <section
+        className="relative overflow-hidden bg-[#101d33] bg-repeat"
+        style={{ backgroundImage: "url('/patterns/houses.svg')", backgroundSize: "260px 150px" }}
+      >
         <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
             <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Financiamiento para tu hogar</p>

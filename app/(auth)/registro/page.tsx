@@ -1,20 +1,77 @@
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import Link from "next/link";
+import { Mail, UserCheck, Calculator } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { RegistroForm } from "./form";
+
+const PASOS = [
+  {
+    icono: Mail,
+    titulo: "Confirma tu correo",
+    descripcion: "Te mandamos un link de confirmación apenas te registras — ábrelo para poder entrar al portal.",
+  },
+  {
+    icono: UserCheck,
+    titulo: "Confirmamos tu identidad",
+    descripcion: "Un administrador revisa tus datos a mano antes de que tu solicitud avance de verdad.",
+  },
+  {
+    icono: Calculator,
+    titulo: "Armamos tu financiamiento",
+    descripcion: "Con tu score consultado, te preparamos las opciones de tasa y cuotas para tu contrato.",
+  },
+];
 
 export default function RegistroPage() {
   return (
-    <main className="flex min-h-svh items-center justify-center p-8">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Crea tu cuenta</CardTitle>
-          <CardDescription>
-            Confirma tu correo para entrar al portal. Tu solicitud avanza de verdad una vez que confirmemos tu identidad.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RegistroForm />
-        </CardContent>
-      </Card>
+    <main>
+      <section
+        className="relative overflow-hidden bg-[#101d33] bg-repeat"
+        style={{ backgroundImage: "url('/patterns/houses.svg')", backgroundSize: "260px 150px" }}
+      >
+        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+          <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Portal del cliente</p>
+          <h1 className="mt-4 max-w-2xl font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
+            Crea tu cuenta
+          </h1>
+          <p className="mt-6 max-w-lg text-base text-white/70 sm:text-lg">
+            Regístrate y confirma tu correo para entrar al portal. Tu solicitud avanza de verdad una vez que
+            confirmemos tu identidad.
+          </p>
+        </div>
+      </section>
+
+      <section className="bg-background">
+        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+          <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground sm:text-3xl">Qué vas a encontrar</h2>
+          <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
+            {PASOS.map((paso) => (
+              <div key={paso.titulo}>
+                <paso.icono className="size-6 text-[#c68a3d]" strokeWidth={1.75} />
+                <h3 className="mt-3 text-sm font-semibold text-foreground">{paso.titulo}</h3>
+                <p className="mt-1.5 text-sm text-muted-foreground">{paso.descripcion}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t bg-muted/40">
+        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+          <div className="mx-auto max-w-md">
+            <Card>
+              <CardContent className="pt-6">
+                <RegistroForm />
+              </CardContent>
+            </Card>
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              ¿Ya tienes cuenta?{" "}
+              <Link href="/portal-login" className="text-foreground underline-offset-4 hover:underline">
+                Ingresa acá
+              </Link>
+            </p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }
