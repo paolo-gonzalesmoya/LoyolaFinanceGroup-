@@ -10,7 +10,7 @@ import { createServerClient } from "@supabase/ssr";
 // datos). La autorización real — admin vs vendedor vs cliente, fila por
 // fila — se resuelve siempre server-side vía RLS y el Data Access Layer de
 // cada feature (Fases 1, 2 y 7), nunca aquí.
-const PUBLIC_ROUTES = ["/", "/login", "/portal-login", "/portal-login/ingresar", "/registro", "/auth/callback"];
+const PUBLIC_ROUTES = ["/", "/login", "/portal-login", "/portal-login/ingresar", "/registro", "/registro/formulario", "/auth/callback"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });

@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { Mail, UserCheck, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { HeroPatternStrips } from "@/components/hero-pattern-strips";
-import { RegistroForm } from "./form";
 
 const PASOS = [
   {
@@ -25,7 +23,7 @@ const PASOS = [
 
 export default function RegistroPage() {
   return (
-    <main className="scroll-smooth">
+    <main>
       <section className="relative overflow-hidden bg-[#101d33]">
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
@@ -43,7 +41,7 @@ export default function RegistroPage() {
             <Button
               size="lg"
               className="h-auto shrink-0 bg-[#c68a3d] px-8 py-4 text-lg font-semibold text-[#1a1206] shadow-lg shadow-black/20 hover:bg-[#d69a4d]"
-              render={<a href="#formulario" />}
+              render={<Link href="/registro/formulario" />}
             >
               Comenzar Registro →
             </Button>
@@ -62,26 +60,6 @@ export default function RegistroPage() {
                 <p className="mt-1.5 text-sm text-muted-foreground">{paso.descripcion}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Oculto hasta que se haga clic en "Ir al formulario" — :target lo
-          muestra solo cuando la URL apunta a #formulario, sin JS extra. */}
-      <section id="formulario" className="hidden border-t bg-muted/40 scroll-mt-6 target:block">
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-          <div className="mx-auto max-w-md">
-            <Card>
-              <CardContent className="pt-6">
-                <RegistroForm />
-              </CardContent>
-            </Card>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              ¿Ya tienes cuenta?{" "}
-              <Link href="/portal-login/ingresar" className="text-foreground underline-offset-4 hover:underline">
-                Ingresa acá
-              </Link>
-            </p>
           </div>
         </div>
       </section>
