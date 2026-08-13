@@ -57,7 +57,11 @@ Hay dos envíos de correo distintos, con dos mecanismos distintos:
 
 **b) Notificaciones de la app** (aprobación/rechazo de crédito, cobranza, reembolsos) — las manda el código directamente vía la API de Resend (`lib/notificaciones/email.ts`), usando `RESEND_API_KEY` de `.env.local`. No depende de la configuración de Supabase.
 
-**Restricción compartida por las dos:** sin un dominio propio verificado en Resend (`resend.com` → Domains), el remitente `onboarding@resend.dev` **solo entrega al correo con el que se creó la cuenta de Resend** — cualquier otro destinatario rebota en silencio. Hasta que se compre y verifique un dominio, las pruebas solo van a llegar a esa dirección. Una vez verificado el dominio: cargar `RESEND_FROM_EMAIL` en `.env.local`/Vercel con el remitente nuevo, y actualizar el mismo remitente en el SMTP Settings de Supabase.
+**Restricción compartida por las dos:** sin un dominio propio verificado en Resend (`resend.com` → Domains), el remitente `onboarding@resend.dev` **solo entrega al correo con el que se creó la cuenta de Resend** — cualquier otro destinatario rebota en silencio. El dominio ya está comprado (`loyolafinancegroup.com`) — falta:
+
+1. Resend Dashboard → **Domains → Add Domain** → `loyolafinancegroup.com`.
+2. Cargar los registros DNS (SPF/DKIM/DMARC) que Resend da ahí en el proveedor donde se compró el dominio. Verificación puede tardar unos minutos a unas horas.
+3. Una vez verificado: `RESEND_FROM_EMAIL="Loyola Finance Group <notificaciones@loyolafinancegroup.com>"` en `.env.local`/Vercel, y el mismo remitente en el SMTP Settings de Supabase (punto (a) más arriba).
 
 ## 6. Dónde mirar en general
 
