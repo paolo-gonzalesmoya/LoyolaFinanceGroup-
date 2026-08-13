@@ -31,7 +31,7 @@ export default function RegistroPage() {
         <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-2xl">
-              <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Portal del cliente</p>
+              <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Nueva cuenta</p>
               <h1 className="mt-4 max-w-2xl font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
                 Crea tu cuenta
               </h1>
@@ -45,7 +45,7 @@ export default function RegistroPage() {
               className="h-auto shrink-0 bg-[#c68a3d] px-8 py-4 text-lg font-semibold text-[#1a1206] shadow-lg shadow-black/20 hover:bg-[#d69a4d]"
               render={<a href="#formulario" />}
             >
-              Ir al formulario →
+              Comenzar Registro →
             </Button>
           </div>
         </div>
@@ -53,7 +53,7 @@ export default function RegistroPage() {
 
       <section className="bg-background">
         <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground sm:text-3xl">Qué vas a encontrar</h2>
+          <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground sm:text-3xl">Los próximos pasos</h2>
           <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
             {PASOS.map((paso) => (
               <div key={paso.titulo}>

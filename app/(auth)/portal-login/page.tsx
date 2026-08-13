@@ -57,7 +57,7 @@ export default function PortalLoginPage() {
 
       <section className="bg-background">
         <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-          <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground sm:text-3xl">Qué vas a encontrar</h2>
+          <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground sm:text-3xl">Disponible en tu portal</h2>
           <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
             {BENEFICIOS.map((beneficio) => (
               <div key={beneficio.titulo}>
