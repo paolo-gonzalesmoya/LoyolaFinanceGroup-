@@ -15,36 +15,30 @@ async function requireAdmin() {
   return usuario;
 }
 
-export async function convertirACliente(
-  leadId: string,
-  _prevState: { error: string } | undefined,
-  formData: FormData
-) {
+export async function crearCliente(_prevState: { error: string } | undefined, formData: FormData) {
   const usuario = await requireAdmin();
   if (!usuario) return { error: "No autorizado." };
 
+  const nombre = String(formData.get("nombre") ?? "").trim();
+  const direccion = String(formData.get("direccion") ?? "").trim() || null;
+  const telefono = String(formData.get("telefono") ?? "").trim() || null;
+  const correo = String(formData.get("correo") ?? "").trim() || null;
   const autorizado = formData.get("autorizado") === "on";
   const ssnItn = String(formData.get("ssn_itn") ?? "").trim();
 
+  if (!nombre) return { error: "El nombre es obligatorio." };
   if (!autorizado) return { error: "Confirma que el cliente autorizó la captura de sus datos y la consulta de crédito." };
   if (!ssnItn) return { error: "El SSN/ITN es obligatorio." };
 
   const supabase = await createClient();
 
-  const { data: existente } = await supabase.from("cliente").select("id").eq("lead_id", leadId).maybeSingle();
-  if (existente) redirect(`/clientes/${existente.id}`);
-
-  const { data: lead } = await supabase.from("lead").select("*").eq("id", leadId).single();
-  if (!lead) return { error: "Lead no encontrado." };
-
   const { data: cliente, error } = await supabase
     .from("cliente")
     .insert({
-      lead_id: leadId,
-      nombre: lead.nombre,
-      direccion: lead.direccion,
-      telefono: lead.telefono,
-      correo: lead.correo,
+      nombre,
+      direccion,
+      telefono,
+      correo,
       ssn_itn_cifrado: encryptSsn(ssnItn),
       registrado_por: usuario.id,
     })
@@ -52,10 +46,9 @@ export async function convertirACliente(
     .single();
 
   if (error || !cliente) {
-    return { error: `No se pudo convertir a cliente: ${error?.message ?? "error desconocido"}` };
+    return { error: `No se pudo registrar el cliente: ${error?.message ?? "error desconocido"}` };
   }
 
-  revalidatePath(`/leads/${leadId}`);
   redirect(`/clientes/${cliente.id}`);
 }
 
@@ -81,7 +74,7 @@ export async function revelarSsn(clienteId: string) {
   }
 }
 
-export async function crearCotizacion(
+export async function crearSolicitudCredito(
   clienteId: string,
   _prevState: { error: string } | undefined,
   formData: FormData
@@ -89,76 +82,32 @@ export async function crearCotizacion(
   const usuario = await requireAdmin();
   if (!usuario) return { error: "No autorizado." };
 
-  const requiereFinanciamiento = formData.get("requiere_financiamiento") === "on";
-  const descripciones = formData.getAll("descripcion") as string[];
-  const cantidades = formData.getAll("cantidad") as string[];
-  const precios = formData.getAll("precio_unitario") as string[];
-
-  const items = descripciones
-    .map((descripcion, i) => ({
-      descripcion: descripcion.trim(),
-      cantidad: Number(cantidades[i] ?? "1") || 1,
-      precio_unitario: Number(precios[i] ?? "0") || 0,
-    }))
-    .filter((item) => item.descripcion !== "" && item.precio_unitario > 0);
-
-  if (items.length === 0) {
-    return { error: "Agrega al menos un ítem con descripción y precio unitario mayor a 0." };
-  }
+  const montoSolicitado = Number(formData.get("monto_solicitado"));
+  if (!montoSolicitado || montoSolicitado <= 0) return { error: "El monto solicitado debe ser mayor a 0." };
 
   const supabase = await createClient();
 
-  const { data: cotizacion, error } = await supabase
-    .from("cotizacion")
-    .insert({ cliente_id: clienteId, elaborada_por: usuario.id, requiere_financiamiento: requiereFinanciamiento })
-    .select("id")
-    .single();
+  const { error } = await supabase
+    .from("solicitud_credito")
+    .insert({ cliente_id: clienteId, monto_solicitado: montoSolicitado, decision: "pendiente" });
 
-  if (error || !cotizacion) {
-    return { error: `No se pudo crear la cotización: ${error?.message ?? "error desconocido"}` };
-  }
-
-  const { error: itemsError } = await supabase
-    .from("item_cotizacion")
-    .insert(items.map((item) => ({ ...item, cotizacion_id: cotizacion.id })));
-
-  if (itemsError) {
-    return { error: `La cotización se creó pero fallaron los ítems: ${itemsError.message}` };
-  }
-
-  if (requiereFinanciamiento) {
-    await supabase.from("solicitud_credito").insert({ cotizacion_id: cotizacion.id, decision: "pendiente" });
-  }
+  if (error) return { error: `No se pudo crear la solicitud: ${error.message}` };
 
   revalidatePath(`/clientes/${clienteId}`);
   redirect(`/clientes/${clienteId}`);
 }
 
-export async function eliminarCotizacion(clienteId: string, cotizacionId: string) {
+export async function eliminarSolicitudCredito(clienteId: string, solicitudId: string) {
   const usuario = await requireAdmin();
   if (!usuario) return { error: "No autorizado." };
 
   const supabase = await createClient();
 
-  const { data: solicitud } = await supabase
-    .from("solicitud_credito")
-    .select("id")
-    .eq("cotizacion_id", cotizacionId)
-    .maybeSingle();
+  const { data: contrato } = await supabase.from("contrato").select("id").eq("solicitud_id", solicitudId).maybeSingle();
+  if (contrato) return { error: "Esta solicitud ya tiene un contrato asociado — no se puede eliminar así." };
 
-  if (solicitud) {
-    const { data: contrato } = await supabase.from("contrato").select("id").eq("solicitud_id", solicitud.id).maybeSingle();
-    if (contrato) {
-      return { error: "Esta cotización ya tiene un contrato asociado — no se puede eliminar así." };
-    }
-
-    const { error: solicitudError } = await supabase.from("solicitud_credito").delete().eq("id", solicitud.id);
-    if (solicitudError) return { error: `No se pudo eliminar la solicitud de crédito: ${solicitudError.message}` };
-  }
-
-  // item_cotizacion cae solo (on delete cascade).
-  const { error } = await supabase.from("cotizacion").delete().eq("id", cotizacionId);
-  if (error) return { error: `No se pudo eliminar la cotización: ${error.message}` };
+  const { error } = await supabase.from("solicitud_credito").delete().eq("id", solicitudId);
+  if (error) return { error: `No se pudo eliminar la solicitud: ${error.message}` };
 
   revalidatePath(`/clientes/${clienteId}`);
   return { error: null };
@@ -196,7 +145,7 @@ export async function solicitarConsultaScore(clienteId: string) {
 }
 
 export async function decidirCredito(
-  input: { clienteId: string; leadId: string; solicitudId: string; cotizacionId: string },
+  input: { clienteId: string; solicitudId: string },
   decision: "aprobado" | "rechazado",
   motivoRechazo: string | null
 ) {
@@ -206,15 +155,16 @@ export async function decidirCredito(
   const supabase = await createClient();
 
   if (decision === "aprobado") {
-    const { data: items } = await supabase
-      .from("item_cotizacion")
-      .select("subtotal")
-      .eq("cotizacion_id", input.cotizacionId);
-    const total = (items ?? []).reduce((suma, item) => suma + Number(item.subtotal), 0);
+    const { data: solicitud } = await supabase
+      .from("solicitud_credito")
+      .select("monto_solicitado")
+      .eq("id", input.solicitudId)
+      .single();
+    const monto = Number(solicitud?.monto_solicitado ?? 0);
 
-    if (total > TOPE_FINANCIAMIENTO_USD) {
+    if (monto > TOPE_FINANCIAMIENTO_USD) {
       return {
-        error: `El total de la cotización ($${total.toFixed(2)}) supera el tope de $${TOPE_FINANCIAMIENTO_USD.toLocaleString()}.`,
+        error: `El monto solicitado ($${monto.toFixed(2)}) supera el tope de $${TOPE_FINANCIAMIENTO_USD.toLocaleString()}.`,
       };
     }
   }
@@ -245,12 +195,6 @@ export async function decidirCredito(
 
   if (error) return { error: `No se pudo registrar la decisión: ${error.message}` };
   if (!actualizadas || actualizadas.length === 0) return { error: "Esta solicitud ya fue decidida." };
-
-  if (decision === "aprobado") {
-    // Máquina de estados del lead (SPEC.md §4): en_proceso -> convertido
-    // pasa exactamente acá, cuando se aprueba el crédito — no antes.
-    await supabase.from("lead").update({ estado: "convertido" }).eq("id", input.leadId);
-  }
 
   await supabase.from("auditoria").insert({
     usuario_id: usuario.id,

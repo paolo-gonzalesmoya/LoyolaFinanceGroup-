@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getAvanceObraFotoSignedUrl } from "@/lib/storage/avance-obra-fotos";
 
 const ESTADO_CUOTA_VARIANT = {
   pendiente: "outline",
@@ -21,15 +20,11 @@ export default async function PortalPage() {
 
   const supabase = await createClient();
 
-  const { data: cotizacion } = await supabase
-    .from("cotizacion")
+  const { data: solicitud } = await supabase
+    .from("solicitud_credito")
     .select("id")
     .eq("cliente_id", cliente.id)
     .maybeSingle();
-
-  const { data: solicitud } = cotizacion
-    ? await supabase.from("solicitud_credito").select("id").eq("cotizacion_id", cotizacion.id).maybeSingle()
-    : { data: null };
 
   const { data: contrato } = solicitud
     ? await supabase.from("contrato").select("*").eq("solicitud_id", solicitud.id).maybeSingle()
@@ -54,18 +49,6 @@ export default async function PortalPage() {
           )
       : { data: null };
   const saldoPorCuotaId = new Map((saldos ?? []).map((s) => [s.cuota_id, Number(s.saldo_pendiente)]));
-
-  const { data: avances } = contrato
-    ? await supabase
-        .from("avance_obra")
-        .select("id, etapa, descripcion, foto_url, fecha_registro")
-        .eq("contrato_id", contrato.id)
-        .order("fecha_registro", { ascending: false })
-    : { data: null };
-
-  const avancesConFoto = avances
-    ? await Promise.all(avances.map(async (a) => ({ ...a, fotoUrl: await getAvanceObraFotoSignedUrl(a.foto_url) })))
-    : null;
 
   const { data: mandato } = await supabase
     .from("mandato_cobro")
@@ -150,31 +133,6 @@ export default async function PortalPage() {
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-      )}
-
-      {avancesConFoto && avancesConFoto.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Avance de obra</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {avancesConFoto.map((a) => (
-              <div key={a.id} className="border-b pb-3 text-sm last:border-0 last:pb-0">
-                <p className="flex items-center gap-2">
-                  <Badge variant="outline" className="capitalize">
-                    {a.etapa.replace("_", " ")}
-                  </Badge>
-                  <span className="text-muted-foreground">{new Date(a.fecha_registro).toLocaleDateString("es-PE")}</span>
-                </p>
-                {a.descripcion && <p className="mt-1">{a.descripcion}</p>}
-                {a.fotoUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={a.fotoUrl} alt={`Avance ${a.etapa}`} className="mt-2 max-h-48 rounded" />
-                )}
-              </div>
-            ))}
           </CardContent>
         </Card>
       )}

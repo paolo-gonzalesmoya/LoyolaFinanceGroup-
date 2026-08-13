@@ -7,9 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { MandatoCobro } from "./mandato-cobro";
 import { ContratoForm } from "./contrato-form";
 import { VerificarDownpaymentButton } from "./verificar-downpayment";
-import { AvanceObraForm, AvanceObraTimeline } from "./avance-obra";
 import { CancelarPrestamoButton, ReembolsarButton } from "./acciones-cobranza";
-import { getAvanceObraFotoSignedUrl } from "@/lib/storage/avance-obra-fotos";
 
 export default async function ContratoPage({ params }: PageProps<"/clientes/[id]/contrato">) {
   const { id } = await params;
@@ -20,34 +18,23 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
   const { data: cliente } = await supabase.from("cliente").select("*").eq("id", id).single();
   if (!cliente) notFound();
 
-  const { data: cotizacion } = await supabase.from("cotizacion").select("id").eq("cliente_id", id).maybeSingle();
-  if (!cotizacion) redirect(`/clientes/${id}`);
-
   const { data: solicitud } = await supabase
     .from("solicitud_credito")
-    .select("id, decision")
-    .eq("cotizacion_id", cotizacion.id)
+    .select("id, decision, monto_solicitado")
+    .eq("cliente_id", id)
     .maybeSingle();
   if (!solicitud || solicitud.decision !== "aprobado") redirect(`/clientes/${id}`);
 
-  const [{ data: mandato }, { data: contrato }, { data: items }, { data: lead }, { data: vendedores }] = await Promise.all([
+  const [{ data: mandato }, { data: contrato }] = await Promise.all([
     supabase.from("mandato_cobro").select("id").eq("cliente_id", id).eq("estado", "activo").maybeSingle(),
     supabase.from("contrato").select("*").eq("solicitud_id", solicitud.id).maybeSingle(),
-    supabase.from("item_cotizacion").select("subtotal").eq("cotizacion_id", cotizacion.id),
-    supabase.from("lead").select("vendedor_id").eq("id", cliente.lead_id).single(),
-    supabase.from("usuario").select("id, nombre").eq("rol", "vendedor").eq("activo", true).order("nombre"),
   ]);
 
-  const total = (items ?? []).reduce((suma, item) => suma + Number(item.subtotal), 0);
+  const total = Number(solicitud.monto_solicitado);
 
-  const [{ data: comision }, { data: prestamo }] = await Promise.all([
-    contrato
-      ? supabase.from("comision_vendedor").select("*").eq("contrato_id", contrato.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-    contrato
-      ? supabase.from("prestamo").select("id, monto_financiado, estado").eq("contrato_id", contrato.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
+  const { data: prestamo } = contrato
+    ? await supabase.from("prestamo").select("id, monto_financiado, estado").eq("contrato_id", contrato.id).maybeSingle()
+    : { data: null };
 
   const cuotas = prestamo
     ? (
@@ -83,26 +70,6 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
     en_mora: "destructive",
   } as const;
 
-  const { data: avancesRaw } = contrato?.downpayment_pagado
-    ? await supabase
-        .from("avance_obra")
-        .select("id, etapa, descripcion, foto_url, fecha_registro")
-        .eq("contrato_id", contrato.id)
-        .order("fecha_registro", { ascending: false })
-    : { data: null };
-
-  const avances = avancesRaw
-    ? await Promise.all(
-        avancesRaw.map(async (avance) => ({
-          id: avance.id,
-          etapa: avance.etapa,
-          descripcion: avance.descripcion,
-          fecha_registro: avance.fecha_registro,
-          fotoUrl: await getAvanceObraFotoSignedUrl(avance.foto_url),
-        }))
-      )
-    : null;
-
   return (
     <div className="max-w-2xl space-y-4">
       <h1 className="text-xl font-semibold">Contrato — {cliente.nombre}</h1>
@@ -122,14 +89,7 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
             <CardTitle className="text-base">Datos del contrato</CardTitle>
           </CardHeader>
           <CardContent>
-            <ContratoForm
-              clienteId={cliente.id}
-              cotizacionId={cotizacion.id}
-              solicitudId={solicitud.id}
-              total={total}
-              vendedores={vendedores ?? []}
-              vendedorIdSugerido={lead?.vendedor_id ?? null}
-            />
+            <ContratoForm clienteId={cliente.id} solicitudId={solicitud.id} total={total} />
           </CardContent>
         </Card>
       )}
@@ -147,16 +107,8 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
               Downpayment: ${Number(contrato.downpayment_monto).toFixed(2)} —{" "}
               <Badge variant="outline">{contrato.downpayment_pagado ? "cobrado" : "pendiente"}</Badge>
             </p>
-            {comision && (
-              <p>
-                Comisión del vendedor: ${Number(comision.monto).toFixed(2)} ({comision.porcentaje}%) —{" "}
-                <Badge variant="outline">{comision.estado}</Badge>
-              </p>
-            )}
             {!contrato.downpayment_pagado && (
-              <VerificarDownpaymentButton
-                input={{ clienteId: cliente.id, contratoId: contrato.id, cotizacionId: cotizacion.id }}
-              />
+              <VerificarDownpaymentButton input={{ clienteId: cliente.id, contratoId: contrato.id }} />
             )}
           </CardContent>
         </Card>
@@ -243,18 +195,6 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
                 })}
               </TableBody>
             </Table>
-          </CardContent>
-        </Card>
-      )}
-
-      {contrato?.downpayment_pagado && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Avance de obra</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <AvanceObraTimeline avances={avances ?? []} />
-            <AvanceObraForm clienteId={cliente.id} contratoId={contrato.id} />
           </CardContent>
         </Card>
       )}

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 
-type Input = { clienteId: string; leadId: string; solicitudId: string; cotizacionId: string };
+type Input = { clienteId: string; solicitudId: string };
 
 export function DecisionCredito({ input }: { input: Input }) {
   const [error, setError] = useState<string | null>(null);

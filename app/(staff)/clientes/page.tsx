@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getStaffUser } from "@/lib/auth/session";
+import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function ClientesPage() {
@@ -16,7 +17,10 @@ export default async function ClientesPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-semibold">Clientes</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold">Clientes</h1>
+        <Button render={<Link href="/clientes/nuevo" />}>Nuevo cliente</Button>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -42,7 +46,7 @@ export default async function ClientesPage() {
           {(!clientes || clientes.length === 0) && (
             <TableRow>
               <TableCell colSpan={4} className="text-center text-muted-foreground">
-                Sin clientes todavía — se crean convirtiendo un lead en_proceso.
+                Sin clientes todavía — registra el primero con "Nuevo cliente".
               </TableCell>
             </TableRow>
           )}

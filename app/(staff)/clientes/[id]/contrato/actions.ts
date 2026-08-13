@@ -8,7 +8,6 @@ import { getStaffUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/client";
 import { generarCronograma } from "@/lib/prestamos/amortizacion";
 import { TOPE_FINANCIAMIENTO_USD } from "@/lib/credito/reglas";
-import { subirFotoAvanceObra } from "@/lib/storage/avance-obra-fotos";
 import { registrarReembolso } from "@/lib/ledger/movimientos";
 import { notificarPrestamoCancelado, notificarReembolso } from "@/lib/notificaciones/registrar";
 
@@ -18,11 +17,6 @@ async function requireAdmin() {
   const usuario = await getStaffUser();
   if (!usuario || usuario.rol !== "admin") return null;
   return usuario;
-}
-
-async function totalCotizacion(supabase: Awaited<ReturnType<typeof createClient>>, cotizacionId: string) {
-  const { data: items } = await supabase.from("item_cotizacion").select("subtotal").eq("cotizacion_id", cotizacionId);
-  return (items ?? []).reduce((suma, item) => suma + Number(item.subtotal), 0);
 }
 
 export async function crearSetupIntent(clienteId: string) {
@@ -82,7 +76,7 @@ export async function confirmarMandatoCobro(clienteId: string, stripePaymentMeth
 }
 
 export async function crearContrato(
-  input: { clienteId: string; cotizacionId: string; solicitudId: string },
+  input: { clienteId: string; solicitudId: string },
   _prevState: { error: string | null } | undefined,
   formData: FormData
 ) {
@@ -91,13 +85,9 @@ export async function crearContrato(
 
   const numeroCuotas = Number(formData.get("numero_cuotas"));
   const tasaMensual = Number(formData.get("tasa_mensual"));
-  const vendedorId = String(formData.get("vendedor_id") ?? "");
-  const porcentajeComision = Number(formData.get("porcentaje_comision"));
 
   if (!NUMERO_CUOTAS_VALIDAS.includes(numeroCuotas)) return { error: "Número de cuotas inválido." };
   if (!tasaMensual || tasaMensual <= 0) return { error: "La tasa mensual debe ser mayor a 0." };
-  if (!vendedorId) return { error: "Selecciona un vendedor." };
-  if (!porcentajeComision || porcentajeComision <= 0) return { error: "El porcentaje de comisión debe ser mayor a 0." };
 
   const supabase = await createClient();
 
@@ -109,7 +99,12 @@ export async function crearContrato(
     .maybeSingle();
   if (!mandato) return { error: "Primero hay que autorizar un método de cobro." };
 
-  const total = await totalCotizacion(supabase, input.cotizacionId);
+  const { data: solicitud } = await supabase
+    .from("solicitud_credito")
+    .select("monto_solicitado")
+    .eq("id", input.solicitudId)
+    .single();
+  const total = Number(solicitud?.monto_solicitado ?? 0);
   const downpaymentMonto = Math.round(total * 0.5 * 100) / 100;
   const montoFinanciado = Math.round((total - downpaymentMonto) * 100) / 100;
 
@@ -125,7 +120,6 @@ export async function crearContrato(
       solicitud_id: input.solicitudId,
       numero_cuotas: numeroCuotas,
       tasa_mensual: tasaMensual,
-      vendedor_id: vendedorId,
       downpayment_monto: downpaymentMonto,
       registrado_por: usuario.id,
     })
@@ -136,25 +130,11 @@ export async function crearContrato(
     return { error: `No se pudo crear el contrato: ${error?.message ?? "error desconocido"}` };
   }
 
-  // SPEC.md §1.4: la comisión se devenga al firmar el contrato.
-  const montoComision = Math.round(montoFinanciado * (porcentajeComision / 100) * 100) / 100;
-  const { error: comisionError } = await supabase.from("comision_vendedor").insert({
-    contrato_id: contrato.id,
-    vendedor_id: vendedorId,
-    porcentaje: porcentajeComision,
-    monto: montoComision,
-    estado: "devengada",
-  });
-
-  if (comisionError) {
-    return { error: `El contrato se creó pero falló la comisión: ${comisionError.message}` };
-  }
-
   revalidatePath(`/clientes/${input.clienteId}/contrato`);
   return { error: null };
 }
 
-export async function verificarDownpayment(input: { clienteId: string; contratoId: string; cotizacionId: string }) {
+export async function verificarDownpayment(input: { clienteId: string; contratoId: string }) {
   const usuario = await requireAdmin();
   if (!usuario) return { error: "No autorizado." };
 
@@ -163,6 +143,13 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
   const { data: contrato } = await supabase.from("contrato").select("*").eq("id", input.contratoId).single();
   if (!contrato) return { error: "Contrato no encontrado." };
   if (contrato.downpayment_pagado) return { error: "El downpayment ya estaba cobrado." };
+
+  const { data: solicitud } = await supabase
+    .from("solicitud_credito")
+    .select("monto_solicitado")
+    .eq("id", contrato.solicitud_id)
+    .single();
+  const total = Number(solicitud?.monto_solicitado ?? 0);
 
   const { data: cliente } = await supabase
     .from("cliente")
@@ -179,7 +166,6 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
     .maybeSingle();
   if (!mandato) return { error: "No hay un método de cobro activo." };
 
-  const total = await totalCotizacion(supabase, input.cotizacionId);
   const montoFinanciado = Math.round((total - Number(contrato.downpayment_monto)) * 100) / 100;
 
   if (montoFinanciado > TOPE_FINANCIAMIENTO_USD) {
@@ -256,50 +242,6 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
 
   if (cuotasError) {
     return { error: `El préstamo se creó pero falló el cronograma: ${cuotasError.message}` };
-  }
-
-  revalidatePath(`/clientes/${input.clienteId}/contrato`);
-  return { error: null };
-}
-
-const ETAPAS_VALIDAS = ["inicial", "en_proceso", "final"] as const;
-
-export async function registrarAvanceObra(
-  input: { clienteId: string; contratoId: string },
-  _prevState: { error: string | null } | undefined,
-  formData: FormData
-) {
-  const usuario = await requireAdmin();
-  if (!usuario) return { error: "No autorizado." };
-
-  const etapa = String(formData.get("etapa") ?? "");
-  const descripcion = String(formData.get("descripcion") ?? "").trim() || null;
-  const foto = formData.get("foto");
-
-  if (!ETAPAS_VALIDAS.includes(etapa as (typeof ETAPAS_VALIDAS)[number])) {
-    return { error: "Elige una etapa válida." };
-  }
-
-  const supabase = await createClient();
-
-  const { data: avance, error } = await supabase
-    .from("avance_obra")
-    .insert({
-      contrato_id: input.contratoId,
-      etapa: etapa as (typeof ETAPAS_VALIDAS)[number],
-      descripcion,
-      registrado_por: usuario.id,
-    })
-    .select("id")
-    .single();
-
-  if (error || !avance) {
-    return { error: `No se pudo registrar el avance: ${error?.message ?? "error desconocido"}` };
-  }
-
-  if (foto instanceof File && foto.size > 0) {
-    const path = await subirFotoAvanceObra(supabase, input.contratoId, avance.id, foto);
-    if (path) await supabase.from("avance_obra").update({ foto_url: path }).eq("id", avance.id);
   }
 
   revalidatePath(`/clientes/${input.clienteId}/contrato`);

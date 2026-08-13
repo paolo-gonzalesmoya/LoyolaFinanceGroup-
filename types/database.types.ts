@@ -88,107 +88,6 @@ export type Database = {
           },
         ]
       }
-      avance_obra: {
-        Row: {
-          contrato_id: string
-          descripcion: string | null
-          etapa: Database["public"]["Enums"]["etapa_avance_obra"]
-          fecha_registro: string
-          foto_url: string | null
-          id: string
-          registrado_por: string
-        }
-        Insert: {
-          contrato_id: string
-          descripcion?: string | null
-          etapa: Database["public"]["Enums"]["etapa_avance_obra"]
-          fecha_registro?: string
-          foto_url?: string | null
-          id?: string
-          registrado_por: string
-        }
-        Update: {
-          contrato_id?: string
-          descripcion?: string | null
-          etapa?: Database["public"]["Enums"]["etapa_avance_obra"]
-          fecha_registro?: string
-          foto_url?: string | null
-          id?: string
-          registrado_por?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "avance_obra_contrato_id_fkey"
-            columns: ["contrato_id"]
-            isOneToOne: false
-            referencedRelation: "contrato"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "avance_obra_registrado_por_fkey"
-            columns: ["registrado_por"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      campo_servicio: {
-        Row: {
-          categoria_id: string
-          fecha_registro: string
-          id: string
-          nombre_campo: string
-          opciones: string[] | null
-          tipo_dato: Database["public"]["Enums"]["tipo_dato_campo"]
-          unidad_medida: string | null
-        }
-        Insert: {
-          categoria_id: string
-          fecha_registro?: string
-          id?: string
-          nombre_campo: string
-          opciones?: string[] | null
-          tipo_dato?: Database["public"]["Enums"]["tipo_dato_campo"]
-          unidad_medida?: string | null
-        }
-        Update: {
-          categoria_id?: string
-          fecha_registro?: string
-          id?: string
-          nombre_campo?: string
-          opciones?: string[] | null
-          tipo_dato?: Database["public"]["Enums"]["tipo_dato_campo"]
-          unidad_medida?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "campo_servicio_categoria_id_fkey"
-            columns: ["categoria_id"]
-            isOneToOne: false
-            referencedRelation: "categoria_servicio"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      categoria_servicio: {
-        Row: {
-          fecha_registro: string
-          id: string
-          nombre: string
-        }
-        Insert: {
-          fecha_registro?: string
-          id?: string
-          nombre: string
-        }
-        Update: {
-          fecha_registro?: string
-          id?: string
-          nombre?: string
-        }
-        Relationships: []
-      }
       cliente: {
         Row: {
           auth_user_id: string | null
@@ -196,7 +95,6 @@ export type Database = {
           direccion: string | null
           fecha_registro: string
           id: string
-          lead_id: string
           nombre: string
           registrado_por: string
           ssn_itn_cifrado: string | null
@@ -209,7 +107,6 @@ export type Database = {
           direccion?: string | null
           fecha_registro?: string
           id?: string
-          lead_id: string
           nombre: string
           registrado_por: string
           ssn_itn_cifrado?: string | null
@@ -222,7 +119,6 @@ export type Database = {
           direccion?: string | null
           fecha_registro?: string
           id?: string
-          lead_id?: string
           nombre?: string
           registrado_por?: string
           ssn_itn_cifrado?: string | null
@@ -231,60 +127,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "cliente_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "lead"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "cliente_registrado_por_fkey"
             columns: ["registrado_por"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      comision_vendedor: {
-        Row: {
-          contrato_id: string
-          estado: Database["public"]["Enums"]["estado_comision"]
-          fecha_registro: string
-          id: string
-          monto: number
-          porcentaje: number
-          vendedor_id: string
-        }
-        Insert: {
-          contrato_id: string
-          estado?: Database["public"]["Enums"]["estado_comision"]
-          fecha_registro?: string
-          id?: string
-          monto: number
-          porcentaje: number
-          vendedor_id: string
-        }
-        Update: {
-          contrato_id?: string
-          estado?: Database["public"]["Enums"]["estado_comision"]
-          fecha_registro?: string
-          id?: string
-          monto?: number
-          porcentaje?: number
-          vendedor_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comision_vendedor_contrato_id_fkey"
-            columns: ["contrato_id"]
-            isOneToOne: true
-            referencedRelation: "contrato"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comision_vendedor_vendedor_id_fkey"
-            columns: ["vendedor_id"]
             isOneToOne: false
             referencedRelation: "usuario"
             referencedColumns: ["id"]
@@ -348,7 +192,6 @@ export type Database = {
           registrado_por: string
           solicitud_id: string
           tasa_mensual: number
-          vendedor_id: string
         }
         Insert: {
           downpayment_monto: number
@@ -361,7 +204,6 @@ export type Database = {
           registrado_por: string
           solicitud_id: string
           tasa_mensual: number
-          vendedor_id: string
         }
         Update: {
           downpayment_monto?: number
@@ -374,7 +216,6 @@ export type Database = {
           registrado_por?: string
           solicitud_id?: string
           tasa_mensual?: number
-          vendedor_id?: string
         }
         Relationships: [
           {
@@ -396,52 +237,6 @@ export type Database = {
             columns: ["solicitud_id"]
             isOneToOne: true
             referencedRelation: "solicitud_credito"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "contrato_vendedor_id_fkey"
-            columns: ["vendedor_id"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      cotizacion: {
-        Row: {
-          cliente_id: string
-          elaborada_por: string
-          fecha_registro: string
-          id: string
-          requiere_financiamiento: boolean
-        }
-        Insert: {
-          cliente_id: string
-          elaborada_por: string
-          fecha_registro?: string
-          id?: string
-          requiere_financiamiento?: boolean
-        }
-        Update: {
-          cliente_id?: string
-          elaborada_por?: string
-          fecha_registro?: string
-          id?: string
-          requiere_financiamiento?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "cotizacion_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: true
-            referencedRelation: "cliente"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "cotizacion_elaborada_por_fkey"
-            columns: ["elaborada_por"]
-            isOneToOne: false
-            referencedRelation: "usuario"
             referencedColumns: ["id"]
           },
         ]
@@ -477,108 +272,6 @@ export type Database = {
             columns: ["prestamo_id"]
             isOneToOne: false
             referencedRelation: "prestamo"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      item_cotizacion: {
-        Row: {
-          cantidad: number
-          cotizacion_id: string
-          descripcion: string
-          id: string
-          precio_unitario: number
-          subtotal: number | null
-        }
-        Insert: {
-          cantidad?: number
-          cotizacion_id: string
-          descripcion: string
-          id?: string
-          precio_unitario: number
-          subtotal?: number | null
-        }
-        Update: {
-          cantidad?: number
-          cotizacion_id?: string
-          descripcion?: string
-          id?: string
-          precio_unitario?: number
-          subtotal?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "item_cotizacion_cotizacion_id_fkey"
-            columns: ["cotizacion_id"]
-            isOneToOne: false
-            referencedRelation: "cotizacion"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lead: {
-        Row: {
-          categoria_id: string
-          correo: string | null
-          direccion: string | null
-          estado: Database["public"]["Enums"]["estado_lead"]
-          fecha_registro: string
-          foto_dni_url: string | null
-          foto_recibo_url: string | null
-          id: string
-          nombre: string
-          registrado_por: string
-          telefono: string | null
-          vendedor_id: string | null
-        }
-        Insert: {
-          categoria_id: string
-          correo?: string | null
-          direccion?: string | null
-          estado?: Database["public"]["Enums"]["estado_lead"]
-          fecha_registro?: string
-          foto_dni_url?: string | null
-          foto_recibo_url?: string | null
-          id?: string
-          nombre: string
-          registrado_por: string
-          telefono?: string | null
-          vendedor_id?: string | null
-        }
-        Update: {
-          categoria_id?: string
-          correo?: string | null
-          direccion?: string | null
-          estado?: Database["public"]["Enums"]["estado_lead"]
-          fecha_registro?: string
-          foto_dni_url?: string | null
-          foto_recibo_url?: string | null
-          id?: string
-          nombre?: string
-          registrado_por?: string
-          telefono?: string | null
-          vendedor_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lead_categoria_id_fkey"
-            columns: ["categoria_id"]
-            isOneToOne: false
-            referencedRelation: "categoria_servicio"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lead_registrado_por_fkey"
-            columns: ["registrado_por"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lead_vendedor_id_fkey"
-            columns: ["vendedor_id"]
-            isOneToOne: false
-            referencedRelation: "usuario"
             referencedColumns: ["id"]
           },
         ]
@@ -778,45 +471,48 @@ export type Database = {
       }
       solicitud_credito: {
         Row: {
+          cliente_id: string
           consulta_score_id: string | null
-          cotizacion_id: string
           decidido_por: string | null
           decision: Database["public"]["Enums"]["decision_credito"]
           fecha_registro: string
           id: string
+          monto_solicitado: number
           motivo_rechazo: string | null
         }
         Insert: {
+          cliente_id: string
           consulta_score_id?: string | null
-          cotizacion_id: string
           decidido_por?: string | null
           decision?: Database["public"]["Enums"]["decision_credito"]
           fecha_registro?: string
           id?: string
+          monto_solicitado: number
           motivo_rechazo?: string | null
         }
         Update: {
+          cliente_id?: string
           consulta_score_id?: string | null
-          cotizacion_id?: string
           decidido_por?: string | null
           decision?: Database["public"]["Enums"]["decision_credito"]
           fecha_registro?: string
           id?: string
+          monto_solicitado?: number
           motivo_rechazo?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "solicitud_credito_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: true
+            referencedRelation: "cliente"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "solicitud_credito_consulta_score_id_fkey"
             columns: ["consulta_score_id"]
             isOneToOne: false
             referencedRelation: "consulta_score"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "solicitud_credito_cotizacion_id_fkey"
-            columns: ["cotizacion_id"]
-            isOneToOne: true
-            referencedRelation: "cotizacion"
             referencedColumns: ["id"]
           },
           {
@@ -858,55 +554,6 @@ export type Database = {
         }
         Relationships: []
       }
-      valor_campo_lead: {
-        Row: {
-          campo_servicio_id: string
-          fecha_registro: string
-          id: string
-          lead_id: string
-          registrado_por: string
-          valor: string | null
-        }
-        Insert: {
-          campo_servicio_id: string
-          fecha_registro?: string
-          id?: string
-          lead_id: string
-          registrado_por: string
-          valor?: string | null
-        }
-        Update: {
-          campo_servicio_id?: string
-          fecha_registro?: string
-          id?: string
-          lead_id?: string
-          registrado_por?: string
-          valor?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "valor_campo_lead_campo_servicio_id_fkey"
-            columns: ["campo_servicio_id"]
-            isOneToOne: false
-            referencedRelation: "campo_servicio"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "valor_campo_lead_lead_id_fkey"
-            columns: ["lead_id"]
-            isOneToOne: false
-            referencedRelation: "lead"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "valor_campo_lead_registrado_por_fkey"
-            columns: ["registrado_por"]
-            isOneToOne: false
-            referencedRelation: "usuario"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
     }
     Views: {
       saldo_cuota: {
@@ -923,25 +570,15 @@ export type Database = {
       current_cliente_id: { Args: never; Returns: string }
       current_usuario_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
-      is_vendedor: { Args: never; Returns: boolean }
     }
     Enums: {
       decision_credito: "pendiente" | "aprobado" | "rechazado"
       destinatario_notificacion: "admin" | "cliente"
-      estado_comision: "devengada" | "pagada" | "revertida"
       estado_cuota: "pendiente" | "pagada" | "vencida" | "en_mora"
-      estado_lead:
-        | "activo"
-        | "asignado"
-        | "en_proceso"
-        | "convertido"
-        | "descartado"
       estado_mandato: "activo" | "inactivo"
       estado_prestamo: "activo" | "pagado" | "cancelado"
-      etapa_avance_obra: "inicial" | "en_proceso" | "final"
       resultado_movimiento: "exitoso" | "reintento" | "fallido"
       rol_usuario: "admin" | "vendedor"
-      tipo_dato_campo: "numero" | "texto" | "seleccion"
       tipo_evento_auditoria:
         | "ver_ssn"
         | "consulta_score"
@@ -1086,21 +723,11 @@ export const Constants = {
     Enums: {
       decision_credito: ["pendiente", "aprobado", "rechazado"],
       destinatario_notificacion: ["admin", "cliente"],
-      estado_comision: ["devengada", "pagada", "revertida"],
       estado_cuota: ["pendiente", "pagada", "vencida", "en_mora"],
-      estado_lead: [
-        "activo",
-        "asignado",
-        "en_proceso",
-        "convertido",
-        "descartado",
-      ],
       estado_mandato: ["activo", "inactivo"],
       estado_prestamo: ["activo", "pagado", "cancelado"],
-      etapa_avance_obra: ["inicial", "en_proceso", "final"],
       resultado_movimiento: ["exitoso", "reintento", "fallido"],
       rol_usuario: ["admin", "vendedor"],
-      tipo_dato_campo: ["numero", "texto", "seleccion"],
       tipo_evento_auditoria: [
         "ver_ssn",
         "consulta_score",

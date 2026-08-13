@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { verificarDownpayment } from "./actions";
 import { Button } from "@/components/ui/button";
 
-type Input = { clienteId: string; contratoId: string; cotizacionId: string };
+type Input = { clienteId: string; contratoId: string };
 
 export function VerificarDownpaymentButton({ input }: { input: Input }) {
   const [error, setError] = useState<string | null>(null);

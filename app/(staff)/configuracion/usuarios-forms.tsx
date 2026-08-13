@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+// El rol vendedor ya no se ofrece al crear usuarios (el producto quedó
+// solo-financiamiento) pero se mantiene la etiqueta por si queda alguna
+// fila vieja con ese rol.
 const ROL_LABEL: Record<string, string> = { admin: "Admin", vendedor: "Vendedor" };
 
 export function NuevoUsuarioForm() {
@@ -21,7 +23,7 @@ export function NuevoUsuarioForm() {
       </CardHeader>
       <CardContent className="space-y-4">
         <form action={action} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label htmlFor="nombre">Nombre</Label>
               <Input id="nombre" name="nombre" required />
@@ -29,18 +31,6 @@ export function NuevoUsuarioForm() {
             <div className="space-y-1.5">
               <Label htmlFor="correo">Correo</Label>
               <Input id="correo" name="correo" type="email" required />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="rol">Rol</Label>
-              <Select name="rol" defaultValue="vendedor">
-                <SelectTrigger id="rol" className="w-full">
-                  <SelectValue>{(value: string | null) => ROL_LABEL[value ?? "vendedor"]}</SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="vendedor">Vendedor</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 
