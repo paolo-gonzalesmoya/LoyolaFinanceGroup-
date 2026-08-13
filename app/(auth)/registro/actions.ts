@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { encryptSsn } from "@/lib/crypto/ssn";
 import { TC_VERSION } from "./terminos";
 
 export async function registrarClientePublico(_prevState: { error: string } | undefined, formData: FormData) {
@@ -10,11 +11,13 @@ export async function registrarClientePublico(_prevState: { error: string } | un
   const correo = String(formData.get("correo") ?? "").trim().toLowerCase();
   const telefono = String(formData.get("telefono") ?? "").trim() || null;
   const direccion = String(formData.get("direccion") ?? "").trim() || null;
+  const ssnItn = String(formData.get("ssn_itn") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const confirmarPassword = String(formData.get("confirmar_password") ?? "");
   const tcAceptado = formData.get("tc_aceptado") === "on";
 
   if (!nombre || !correo) return { error: "Completa tu nombre y correo." };
+  if (!ssnItn) return { error: "El SSN/ITN es obligatorio — lo necesitamos para consultar tu score de crédito." };
   if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
   if (password !== confirmarPassword) return { error: "Las contraseñas no coinciden." };
   if (!tcAceptado) return { error: "Tienes que aceptar los Términos y Condiciones para continuar." };
@@ -33,13 +36,15 @@ export async function registrarClientePublico(_prevState: { error: string } | un
   }
 
   // verificado queda en false (default de la columna): un cliente que se
-  // registra solo puede simular hasta que admin lo confirme a mano — recién
-  // ahí se habilita cargar SSN y crear una solicitud real.
+  // registra puede cargar su SSN/ITN de una (admin ya puede consultar su
+  // score), pero no puede enviar una solicitud real hasta que admin
+  // confirme su identidad a mano.
   const { error: dbError } = await admin.from("cliente").insert({
     nombre,
     correo,
     telefono,
     direccion,
+    ssn_itn_cifrado: encryptSsn(ssnItn),
     auth_user_id: authUser.user.id,
     registrado_por: null,
     tc_aceptado_en: new Date().toISOString(),

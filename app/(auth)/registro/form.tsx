@@ -30,6 +30,11 @@ export function RegistroForm() {
         <Label htmlFor="direccion">Dirección</Label>
         <Input id="direccion" name="direccion" />
       </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="ssn_itn">SSN / ITN</Label>
+        <Input id="ssn_itn" name="ssn_itn" required />
+        <p className="text-xs text-muted-foreground">Se guarda cifrado — lo necesitamos para consultar tu score de crédito.</p>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5">
           <Label htmlFor="password">Contraseña</Label>

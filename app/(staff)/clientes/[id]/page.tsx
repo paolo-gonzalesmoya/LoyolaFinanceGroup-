@@ -94,6 +94,17 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
         </CardContent>
       </Card>
 
+      {cliente.ssn_itn_cifrado && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Consulta de score (Experian)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ConsultaScore clienteId={cliente.id} consultas={consultas ?? []} />
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Solicitud de financiamiento</CardTitle>
@@ -120,17 +131,6 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
           )}
         </CardContent>
       </Card>
-
-      {solicitud && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Consulta de score (Experian)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ConsultaScore clienteId={cliente.id} consultas={consultas ?? []} />
-          </CardContent>
-        </Card>
-      )}
 
       {solicitud && (
         <SimuladorTasas
