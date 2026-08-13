@@ -16,7 +16,7 @@ const PASOS = [
   {
     numero: "03",
     titulo: "Paga en cuotas",
-    descripcion: "Cuotas mensuales fijas, cobradas automáticamente. Sigues tus pagos desde tu portal.",
+    descripcion: "Cuotas mensuales fijas — sigues tu cronograma y el estado de cada una desde tu portal.",
   },
 ];
 
@@ -33,8 +33,8 @@ const BENEFICIOS = [
   },
   {
     icono: CreditCard,
-    titulo: "Cobro automático",
-    descripcion: "Tu cuota se cobra sola cada mes — nada que recordar ni a dónde ir a pagar.",
+    titulo: "Pagos organizados",
+    descripcion: "Ves tu cronograma completo y el estado de cada cuota desde tu portal, sin sorpresas.",
   },
   {
     icono: HomeIcon,

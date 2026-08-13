@@ -1,5 +1,4 @@
 import type { Database } from "@/types/database.types";
-import { DIAS_GRACIA } from "@/lib/mora/calculo";
 
 type EstadoCuota = Database["public"]["Enums"]["estado_cuota"];
 
