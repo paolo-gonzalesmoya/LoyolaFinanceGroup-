@@ -2,7 +2,6 @@
 
 import { useActionState } from "react";
 import { registrarClientePublico } from "./actions";
-import { TC_TEXTO } from "./terminos";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -58,16 +57,9 @@ export function RegistroForm() {
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label>Términos y Condiciones</Label>
-        <div className="max-h-32 overflow-y-auto rounded-md border p-3 text-xs whitespace-pre-line text-muted-foreground">
-          {TC_TEXTO}
-        </div>
-      </div>
-      <label className="flex items-start gap-2 text-sm">
-        <input type="checkbox" name="tc_aceptado" className="mt-1" required />
-        Leí y acepto los Términos y Condiciones.
-      </label>
+      <p className="text-xs text-muted-foreground">
+        Al crear tu cuenta vas a tener que leer y aceptar los Términos y Condiciones como paso siguiente.
+      </p>
 
       {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 

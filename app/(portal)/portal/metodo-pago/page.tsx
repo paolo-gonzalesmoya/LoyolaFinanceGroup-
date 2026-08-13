@@ -6,6 +6,7 @@ import { FormularioMetodoPago } from "./formulario";
 export default async function MetodoPagoPage() {
   const cliente = await getClienteUser();
   if (!cliente) redirect("/portal-login/ingresar");
+  if (!cliente.tc_aceptado_en) redirect("/portal/terminos");
 
   return (
     <div className="max-w-sm">

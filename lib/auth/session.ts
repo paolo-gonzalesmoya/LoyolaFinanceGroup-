@@ -31,7 +31,7 @@ export const getClienteUser = cache(async () => {
 
   const { data } = await supabase
     .from("cliente")
-    .select("id, nombre, correo, verificado")
+    .select("id, nombre, correo, verificado, tc_aceptado_en")
     .eq("auth_user_id", sub)
     .single();
 
