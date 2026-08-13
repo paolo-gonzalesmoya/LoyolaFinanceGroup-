@@ -61,7 +61,7 @@ export async function signInCliente(_prevState: { error: string } | undefined, f
 export async function signOutCliente() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/portal-login");
+  redirect("/portal-login/ingresar");
 }
 
 export async function cambiarPassword(

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 // es RLS (ver supabase/migrations/..._fase7_portal_cliente_rls.sql).
 export default async function PortalLayout({ children }: { children: React.ReactNode }) {
   const cliente = await getClienteUser();
-  if (!cliente) redirect("/portal-login");
+  if (!cliente) redirect("/portal-login/ingresar");
 
   return (
     <div className="min-h-svh">

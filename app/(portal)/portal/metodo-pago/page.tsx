@@ -5,7 +5,7 @@ import { FormularioMetodoPago } from "./formulario";
 
 export default async function MetodoPagoPage() {
   const cliente = await getClienteUser();
-  if (!cliente) redirect("/portal-login");
+  if (!cliente) redirect("/portal-login/ingresar");
 
   return (
     <div className="max-w-sm">

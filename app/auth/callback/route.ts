@@ -16,5 +16,5 @@ export async function GET(request: Request) {
     if (!error) return NextResponse.redirect(`${origin}${next}`);
   }
 
-  return NextResponse.redirect(`${origin}/portal-login?error=invitacion_invalida`);
+  return NextResponse.redirect(`${origin}/portal-login/ingresar?error=invitacion_invalida`);
 }

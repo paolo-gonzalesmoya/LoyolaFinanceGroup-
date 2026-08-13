@@ -18,7 +18,7 @@ const ESTADO_CUOTA_VARIANT = {
 
 export default async function PortalPage() {
   const cliente = await getClienteUser();
-  if (!cliente) redirect("/portal-login");
+  if (!cliente) redirect("/portal-login/ingresar");
 
   const supabase = await createClient();
 

@@ -1,9 +1,7 @@
 import Link from "next/link";
 import { CalendarClock, CreditCard, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { HeroPatternStrips } from "@/components/hero-pattern-strips";
-import { LoginForm } from "./login-form";
 
 const BENEFICIOS = [
   {
@@ -25,7 +23,7 @@ const BENEFICIOS = [
 
 export default function PortalLoginPage() {
   return (
-    <main className="scroll-smooth">
+    <main>
       <section className="relative overflow-hidden bg-[#101d33]">
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
@@ -40,13 +38,19 @@ export default function PortalLoginPage() {
                 Loyola Finance Group.
               </p>
             </div>
-            <Button
-              size="lg"
-              className="shrink-0 bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]"
-              render={<a href="#ingresar" />}
-            >
-              Ingresar
-            </Button>
+            <div className="flex shrink-0 gap-3">
+              <Button
+                size="lg"
+                variant="ghost"
+                className="border border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
+                render={<Link href="/registro" />}
+              >
+                Registrar
+              </Button>
+              <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login/ingresar" />}>
+                Ingresar
+              </Button>
+            </div>
           </div>
         </div>
       </section>
@@ -62,24 +66,6 @@ export default function PortalLoginPage() {
                 <p className="mt-1.5 text-sm text-muted-foreground">{beneficio.descripcion}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      <section id="ingresar" className="border-t bg-muted/40 scroll-mt-6">
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
-          <div className="mx-auto max-w-sm">
-            <Card>
-              <CardContent className="pt-6">
-                <LoginForm />
-              </CardContent>
-            </Card>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
-              ¿No tienes cuenta?{" "}
-              <Link href="/registro" className="text-foreground underline-offset-4 hover:underline">
-                Regístrate
-              </Link>
-            </p>
           </div>
         </div>
       </section>

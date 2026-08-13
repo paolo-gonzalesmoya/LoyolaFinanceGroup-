@@ -76,7 +76,7 @@ export default function RegistroPage() {
             </Card>
             <p className="mt-4 text-center text-sm text-muted-foreground">
               ¿Ya tienes cuenta?{" "}
-              <Link href="/portal-login" className="text-foreground underline-offset-4 hover:underline">
+              <Link href="/portal-login/ingresar" className="text-foreground underline-offset-4 hover:underline">
                 Ingresa acá
               </Link>
             </p>
