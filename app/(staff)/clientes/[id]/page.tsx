@@ -13,6 +13,7 @@ import { SolicitudCreditoForm } from "./solicitud-form";
 import { EliminarSolicitudButton } from "./eliminar-solicitud-button";
 import { InvitarPortalButton } from "./invitar-portal";
 import { ConfirmarClienteButton } from "./confirmar-cliente-button";
+import { SimuladorTasas } from "./simulador-tasas";
 
 export default async function ClienteDetallePage({ params }: PageProps<"/clientes/[id]">) {
   const { id } = await params;
@@ -23,7 +24,7 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
   const { data: cliente } = await supabase.from("cliente").select("*").eq("id", id).single();
   if (!cliente) notFound();
 
-  const [{ data: solicitud }, { data: consultas }] = await Promise.all([
+  const [{ data: solicitud }, { data: consultas }, { data: niveles }] = await Promise.all([
     supabase
       .from("solicitud_credito")
       .select("id, monto_solicitado, decision, motivo_rechazo")
@@ -34,6 +35,11 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
       .select("id, score, ingresos_mensuales, capacidad_pago, fecha_registro")
       .eq("cliente_id", id)
       .order("fecha_registro", { ascending: false }),
+    supabase
+      .from("niveles_score")
+      .select("id, nombre_nivel, score_min, score_max, tasa_interes")
+      .eq("activo", true)
+      .order("score_min"),
   ]);
 
   return (
@@ -124,6 +130,14 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
             <ConsultaScore clienteId={cliente.id} consultas={consultas ?? []} />
           </CardContent>
         </Card>
+      )}
+
+      {solicitud && (
+        <SimuladorTasas
+          montoSolicitado={Number(solicitud.monto_solicitado)}
+          niveles={niveles ?? []}
+          scoreReal={consultas?.[0]?.score ?? null}
+        />
       )}
 
       {solicitud?.decision === "pendiente" && (
