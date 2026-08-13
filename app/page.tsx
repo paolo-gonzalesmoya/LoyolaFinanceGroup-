@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShieldCheck, Clock, CreditCard, Home as HomeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HeroPatternStrips } from "@/components/hero-pattern-strips";
 
 const PASOS = [
   {
@@ -60,11 +61,9 @@ export default function Home() {
         </div>
       </header>
 
-      <section
-        className="relative overflow-hidden bg-[#101d33] bg-repeat"
-        style={{ backgroundImage: "url('/patterns/houses.svg')", backgroundSize: "260px 150px" }}
-      >
-        <div className="mx-auto max-w-6xl px-6 py-20 sm:py-28">
+      <section className="relative overflow-hidden bg-[#101d33]">
+        <HeroPatternStrips />
+        <div className="relative mx-auto max-w-6xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
             <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Financiamiento para tu hogar</p>
             <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">

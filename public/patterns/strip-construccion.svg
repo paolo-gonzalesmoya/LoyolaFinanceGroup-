@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="64" viewBox="0 0 320 64">
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+    <!-- grua -->
+    <path d="M20 58 L20 10 M8 58 L32 58 M20 10 L58 10 M20 18 L34 10" />
+    <path d="M52 10 L52 20 M52 20 L46 20" />
+    <path d="M14 10 L26 10 L20 2 Z" />
+    <!-- casco de seguridad -->
+    <path d="M92 40 A20 16 0 0 1 132 40" />
+    <path d="M86 40 H138" />
+    <path d="M112 24 V17" />
+    <!-- nivel / regla -->
+    <rect x="168" y="30" width="56" height="12" rx="2" />
+    <circle cx="196" cy="36" r="4" />
+    <path d="M180 30 V42 M212 30 V42" />
+    <!-- escalera -->
+    <path d="M256 58 L262 14 M292 58 L286 14" />
+    <path d="M259 48 L289 48 M260 38 L288 38 M261 28 L287 28" />
+  </g>
+</svg>

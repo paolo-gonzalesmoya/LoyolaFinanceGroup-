@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="320" height="64" viewBox="0 0 320 64">
+  <g fill="none" stroke="#ffffff" stroke-opacity="0.12" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">
+    <!-- pila de monedas -->
+    <ellipse cx="30" cy="46" rx="16" ry="5" />
+    <ellipse cx="30" cy="38" rx="16" ry="5" />
+    <ellipse cx="30" cy="30" rx="16" ry="5" />
+    <path d="M14 30 V46 M46 30 V46" />
+    <!-- grafico ascendente -->
+    <path d="M84 48 H132" />
+    <path d="M92 48 V38 M104 48 V30 M116 48 V22 M128 48 V14" />
+    <path d="M120 14 H130 V24" />
+    <!-- documento con check -->
+    <path d="M168 14 H198 L206 22 V50 H168 Z" />
+    <path d="M198 14 V22 H206" />
+    <path d="M176 42 L182 48 L196 32" />
+    <!-- insignia de porcentaje -->
+    <circle cx="252" cy="32" r="18" />
+    <circle cx="246" cy="26" r="3" />
+    <circle cx="258" cy="38" r="3" />
+    <path d="M245 39 L259 25" />
+    <!-- flecha ascendente final -->
+    <path d="M290 48 L306 22" />
+    <path d="M294 22 H306 V34" />
+  </g>
+</svg>

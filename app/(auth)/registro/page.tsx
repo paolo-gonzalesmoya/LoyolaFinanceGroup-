@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Mail, UserCheck, Calculator } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { HeroPatternStrips } from "@/components/hero-pattern-strips";
 import { RegistroForm } from "./form";
 
 const PASOS = [
@@ -24,11 +25,9 @@ const PASOS = [
 export default function RegistroPage() {
   return (
     <main>
-      <section
-        className="relative overflow-hidden bg-[#101d33] bg-repeat"
-        style={{ backgroundImage: "url('/patterns/houses.svg')", backgroundSize: "260px 150px" }}
-      >
-        <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
+      <section className="relative overflow-hidden bg-[#101d33]">
+        <HeroPatternStrips />
+        <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
           <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Portal del cliente</p>
           <h1 className="mt-4 max-w-2xl font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
             Crea tu cuenta
