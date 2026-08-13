@@ -6,6 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Simulador } from "./simulador";
+import { SolicitudClienteForm } from "./solicitud-form";
+import { DownpaymentCheckout } from "./downpayment-checkout";
 
 const ESTADO_CUOTA_VARIANT = {
   pendiente: "outline",
@@ -22,17 +25,117 @@ export default async function PortalPage() {
 
   const { data: solicitud } = await supabase
     .from("solicitud_credito")
-    .select("id")
+    .select("id, monto_solicitado, decision, motivo_rechazo")
     .eq("cliente_id", cliente.id)
     .maybeSingle();
 
-  const { data: contrato } = solicitud
-    ? await supabase.from("contrato").select("*").eq("solicitud_id", solicitud.id).maybeSingle()
-    : { data: null };
+  // Sin solicitud todavía: puede simular, y si ya está confirmado, enviar
+  // su solicitud real (SSN + monto).
+  if (!solicitud) {
+    const { data: niveles } = await supabase
+      .from("niveles_score")
+      .select("id, nombre_nivel, score_min, score_max, tasa_interes")
+      .eq("activo", true)
+      .order("score_min");
 
-  const { data: prestamo } = contrato
-    ? await supabase.from("prestamo").select("id, monto_financiado, estado").eq("contrato_id", contrato.id).maybeSingle()
-    : { data: null };
+    return (
+      <div className="max-w-2xl space-y-4">
+        <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
+        <Simulador niveles={niveles ?? []} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tu solicitud</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {cliente.verificado ? (
+              <SolicitudClienteForm />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Todavía estamos confirmando tu identidad. Apenas terminemos, vas a poder enviar tu solicitud real
+                acá mismo.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (solicitud.decision !== "aprobado") {
+    return (
+      <div className="max-w-2xl space-y-4">
+        <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tu solicitud</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p>
+              Monto solicitado: <b>${Number(solicitud.monto_solicitado).toFixed(2)}</b> ·{" "}
+              <Badge variant="outline">{solicitud.decision}</Badge>
+            </p>
+            {solicitud.decision === "pendiente" && (
+              <p className="text-muted-foreground">Estamos evaluando tu solicitud. Te avisamos apenas tengamos una decisión.</p>
+            )}
+            {solicitud.decision === "rechazado" && solicitud.motivo_rechazo && (
+              <p className="text-muted-foreground">Motivo: {solicitud.motivo_rechazo}</p>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { data: contrato } = await supabase.from("contrato").select("*").eq("solicitud_id", solicitud.id).maybeSingle();
+
+  if (!contrato) {
+    return (
+      <div className="max-w-2xl space-y-4">
+        <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">¡Tu solicitud fue aprobada!</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">Estamos preparando tu contrato — te avisamos apenas esté listo.</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  const { data: mandato } = await supabase
+    .from("mandato_cobro")
+    .select("id")
+    .eq("cliente_id", cliente.id)
+    .eq("estado", "activo")
+    .maybeSingle();
+
+  if (!contrato.downpayment_pagado) {
+    return (
+      <div className="max-w-2xl space-y-4">
+        <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tu contrato está listo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p>
+              {contrato.numero_cuotas} cuotas · {contrato.tasa_mensual}% mensual · Downpayment inicial: $
+              {Number(contrato.downpayment_monto).toFixed(2)}
+            </p>
+          </CardContent>
+        </Card>
+        <DownpaymentCheckout clienteId={cliente.id} contratoId={contrato.id} tieneMetodoDeCobro={!!mandato} />
+      </div>
+    );
+  }
+
+  const { data: prestamo } = await supabase
+    .from("prestamo")
+    .select("id, monto_financiado, estado")
+    .eq("contrato_id", contrato.id)
+    .maybeSingle();
 
   const { data: cuotas } = prestamo
     ? await supabase.from("cuota").select("id, numero, fecha_vencimiento, monto, estado").eq("prestamo_id", prestamo.id).order("numero")
@@ -50,13 +153,6 @@ export default async function PortalPage() {
       : { data: null };
   const saldoPorCuotaId = new Map((saldos ?? []).map((s) => [s.cuota_id, Number(s.saldo_pendiente)]));
 
-  const { data: mandato } = await supabase
-    .from("mandato_cobro")
-    .select("id")
-    .eq("cliente_id", cliente.id)
-    .eq("estado", "activo")
-    .maybeSingle();
-
   const { data: notificaciones } = await supabase
     .from("notificacion")
     .select("id, mensaje, fecha_registro")
@@ -65,12 +161,12 @@ export default async function PortalPage() {
     .order("fecha_registro", { ascending: false })
     .limit(10);
 
-  if (!contrato || !prestamo) {
+  if (!prestamo) {
     return (
       <div className="max-w-2xl">
         <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Todavía no tienes un préstamo activo. Cuando tu financiamiento esté listo, lo vas a ver acá.
+          Tu downpayment ya se cobró — estamos terminando de armar tu cronograma de pagos.
         </p>
       </div>
     );

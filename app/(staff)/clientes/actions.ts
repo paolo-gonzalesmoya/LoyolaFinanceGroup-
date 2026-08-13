@@ -8,6 +8,7 @@ import { getStaffUser } from "@/lib/auth/session";
 import { encryptSsn, decryptSsn } from "@/lib/crypto/ssn";
 import { consultarScore } from "@/lib/experian/client";
 import { TOPE_FINANCIAMIENTO_USD } from "@/lib/credito/reglas";
+import { notificarCreditoRechazado } from "@/lib/notificaciones/registrar";
 
 async function requireAdmin() {
   const usuario = await getStaffUser();
@@ -41,6 +42,11 @@ export async function crearCliente(_prevState: { error: string } | undefined, fo
       correo,
       ssn_itn_cifrado: encryptSsn(ssnItn),
       registrado_por: usuario.id,
+      // Admin ya validó a este cliente al cargarlo a mano — a diferencia
+      // del auto-registro público, no necesita el paso de confirmación.
+      verificado: true,
+      verificado_por: usuario.id,
+      verificado_en: new Date().toISOString(),
     })
     .select("id")
     .single();
@@ -203,7 +209,37 @@ export async function decidirCredito(
     solicitud_credito_id: input.solicitudId,
   });
 
+  if (decision === "rechazado") {
+    const { data: clienteRow } = await supabase.from("cliente").select("correo").eq("id", input.clienteId).single();
+    await notificarCreditoRechazado(supabase, {
+      clienteId: input.clienteId,
+      motivoRechazo: motivoRechazo ?? "",
+      clienteCorreo: clienteRow?.correo ?? null,
+    }).catch(() => {});
+  }
+
   revalidatePath(`/clientes/${input.clienteId}`);
+  return { error: null };
+}
+
+export async function confirmarCliente(clienteId: string) {
+  const usuario = await requireAdmin();
+  if (!usuario) return { error: "No autorizado." };
+
+  const supabase = await createClient();
+
+  const { data: actualizados, error } = await supabase
+    .from("cliente")
+    .update({ verificado: true, verificado_por: usuario.id, verificado_en: new Date().toISOString() })
+    .eq("id", clienteId)
+    .eq("verificado", false)
+    .select("id");
+
+  if (error) return { error: `No se pudo confirmar al cliente: ${error.message}` };
+  if (!actualizados || actualizados.length === 0) return { error: "Este cliente ya estaba confirmado." };
+
+  revalidatePath("/clientes");
+  revalidatePath(`/clientes/${clienteId}`);
   return { error: null };
 }
 

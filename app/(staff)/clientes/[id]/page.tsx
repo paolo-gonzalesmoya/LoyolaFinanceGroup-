@@ -12,6 +12,7 @@ import { DecisionCredito } from "./decision-credito";
 import { SolicitudCreditoForm } from "./solicitud-form";
 import { EliminarSolicitudButton } from "./eliminar-solicitud-button";
 import { InvitarPortalButton } from "./invitar-portal";
+import { ConfirmarClienteButton } from "./confirmar-cliente-button";
 
 export default async function ClienteDetallePage({ params }: PageProps<"/clientes/[id]">) {
   const { id } = await params;
@@ -38,6 +39,21 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
   return (
     <div className="max-w-2xl space-y-4">
       <h1 className="text-xl font-semibold">{cliente.nombre}</h1>
+
+      {!cliente.verificado && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Identidad sin confirmar</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              Este cliente se registró solo desde la web — todavía puede simular, pero no puede cargar su SSN ni
+              avanzar una solicitud real hasta que confirmes quién es.
+            </p>
+            <ConfirmarClienteButton clienteId={cliente.id} />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
@@ -77,7 +93,10 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
           <CardTitle className="text-base">Solicitud de financiamiento</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {!solicitud && <SolicitudCreditoForm clienteId={cliente.id} />}
+          {!solicitud && cliente.verificado && <SolicitudCreditoForm clienteId={cliente.id} />}
+          {!solicitud && !cliente.verificado && (
+            <p className="text-sm text-muted-foreground">Confirma la identidad del cliente antes de crear una solicitud.</p>
+          )}
 
           {solicitud && (
             <>

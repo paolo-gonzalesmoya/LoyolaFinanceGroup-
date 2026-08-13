@@ -31,6 +31,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 
+  // Interruptor explícito: el cobro recurrente (a diferencia del downpayment,
+  // que es un cobro único) necesita que Stripe confirme que este tipo de
+  // negocio califica. Hasta entonces, no se intenta ningún cobro — ni de
+  // cuota ni de mora.
+  if (process.env.COBRANZA_RECURRENTE_HABILITADA !== "true") {
+    return NextResponse.json({ deshabilitado: true, motivo: "COBRANZA_RECURRENTE_HABILITADA no está en 'true'" });
+  }
+
   const supabase = createAdminClient();
   const stripe = getStripe();
   const hoy = new Date();

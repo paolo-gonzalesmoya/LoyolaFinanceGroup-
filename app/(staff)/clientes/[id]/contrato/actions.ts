@@ -6,10 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getStaffUser } from "@/lib/auth/session";
 import { getStripe } from "@/lib/stripe/client";
-import { generarCronograma } from "@/lib/prestamos/amortizacion";
 import { TOPE_FINANCIAMIENTO_USD } from "@/lib/credito/reglas";
 import { registrarReembolso } from "@/lib/ledger/movimientos";
 import { notificarPrestamoCancelado, notificarReembolso } from "@/lib/notificaciones/registrar";
+import { cobrarDownpayment } from "@/lib/prestamos/downpayment";
 
 const NUMERO_CUOTAS_VALIDAS = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
 
@@ -63,10 +63,14 @@ export async function confirmarMandatoCobro(clienteId: string, stripePaymentMeth
   // Un solo mandato activo por cliente a la vez.
   await supabase.from("mandato_cobro").update({ estado: "inactivo" }).eq("cliente_id", clienteId).eq("estado", "activo");
 
+  // autopay_consentido_en queda como su propio registro, separado de la
+  // firma del contrato — el formulario exige el checkbox de consentimiento
+  // antes de poder llegar hasta acá (ver mandato-cobro.tsx).
   const { error } = await supabase.from("mandato_cobro").insert({
     cliente_id: clienteId,
     stripe_payment_method_id: stripePaymentMethodId,
     estado: "activo",
+    autopay_consentido_en: new Date().toISOString(),
   });
 
   if (error) return { error: `No se pudo guardar el mandato: ${error.message}` };
@@ -85,9 +89,11 @@ export async function crearContrato(
 
   const numeroCuotas = Number(formData.get("numero_cuotas"));
   const tasaMensual = Number(formData.get("tasa_mensual"));
+  const tilaAceptado = formData.get("tila_aceptado") === "on";
 
   if (!NUMERO_CUOTAS_VALIDAS.includes(numeroCuotas)) return { error: "Número de cuotas inválido." };
   if (!tasaMensual || tasaMensual <= 0) return { error: "La tasa mensual debe ser mayor a 0." };
+  if (!tilaAceptado) return { error: "Confirma que el cliente recibió y revisó el disclosure antes de firmar." };
 
   const supabase = await createClient();
 
@@ -122,6 +128,7 @@ export async function crearContrato(
       tasa_mensual: tasaMensual,
       downpayment_monto: downpaymentMonto,
       registrado_por: usuario.id,
+      tila_aceptado_en: new Date().toISOString(),
     })
     .select("id")
     .single();
@@ -139,113 +146,10 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
   if (!usuario) return { error: "No autorizado." };
 
   const supabase = await createClient();
+  const resultado = await cobrarDownpayment(supabase, { ...input, verificadoPor: usuario.id });
 
-  const { data: contrato } = await supabase.from("contrato").select("*").eq("id", input.contratoId).single();
-  if (!contrato) return { error: "Contrato no encontrado." };
-  if (contrato.downpayment_pagado) return { error: "El downpayment ya estaba cobrado." };
-
-  const { data: solicitud } = await supabase
-    .from("solicitud_credito")
-    .select("monto_solicitado")
-    .eq("id", contrato.solicitud_id)
-    .single();
-  const total = Number(solicitud?.monto_solicitado ?? 0);
-
-  const { data: cliente } = await supabase
-    .from("cliente")
-    .select("stripe_customer_id")
-    .eq("id", input.clienteId)
-    .single();
-  if (!cliente?.stripe_customer_id) return { error: "El cliente no tiene un Stripe Customer asociado." };
-
-  const { data: mandato } = await supabase
-    .from("mandato_cobro")
-    .select("id, stripe_payment_method_id")
-    .eq("cliente_id", input.clienteId)
-    .eq("estado", "activo")
-    .maybeSingle();
-  if (!mandato) return { error: "No hay un método de cobro activo." };
-
-  const montoFinanciado = Math.round((total - Number(contrato.downpayment_monto)) * 100) / 100;
-
-  if (montoFinanciado > TOPE_FINANCIAMIENTO_USD) {
-    return {
-      error: `El monto a financiar ($${montoFinanciado.toFixed(2)}) supera el tope de $${TOPE_FINANCIAMIENTO_USD.toLocaleString()}.`,
-    };
-  }
-
-  // Cobra el downpayment por Stripe con el medio ya autorizado. Idempotency
-  // key fija por contrato: un doble clic (o un retry de red) no duplica el
-  // cargo, Stripe devuelve el mismo resultado del primer intento.
-  const stripe = getStripe();
-  let paymentIntent: Stripe.PaymentIntent;
-  try {
-    paymentIntent = await stripe.paymentIntents.create(
-      {
-        amount: Math.round(Number(contrato.downpayment_monto) * 100),
-        currency: "usd",
-        customer: cliente.stripe_customer_id,
-        payment_method: mandato.stripe_payment_method_id,
-        off_session: true,
-        confirm: true,
-      },
-      { idempotencyKey: `downpayment:${input.contratoId}` }
-    );
-  } catch (e) {
-    const mensaje = e instanceof Stripe.errors.StripeError ? e.message : "Error desconocido al cobrar.";
-    return { error: `No se pudo cobrar el downpayment: ${mensaje}` };
-  }
-
-  if (paymentIntent.status !== "succeeded") {
-    return { error: `El cobro no se completó (estado: ${paymentIntent.status}).` };
-  }
-
-  const { data: actualizado, error: updateError } = await supabase
-    .from("contrato")
-    .update({
-      downpayment_pagado: true,
-      downpayment_verificado_por: usuario.id,
-      downpayment_stripe_payment_intent_id: paymentIntent.id,
-    })
-    .eq("id", input.contratoId)
-    .eq("downpayment_pagado", false)
-    .select("id");
-
-  if (updateError) return { error: `El cobro se hizo (${paymentIntent.id}) pero no se pudo guardar: ${updateError.message}` };
-  if (!actualizado || actualizado.length === 0) return { error: "El downpayment ya estaba verificado." };
-
-  const { data: prestamo, error: prestamoError } = await supabase
-    .from("prestamo")
-    .insert({
-      contrato_id: input.contratoId,
-      mandato_cobro_id: mandato.id,
-      monto_financiado: montoFinanciado,
-      estado: "activo",
-    })
-    .select("id")
-    .single();
-
-  if (prestamoError || !prestamo) {
-    return { error: `No se pudo crear el préstamo: ${prestamoError?.message ?? "error desconocido"}` };
-  }
-
-  const cronograma = generarCronograma(montoFinanciado, Number(contrato.tasa_mensual), contrato.numero_cuotas, new Date());
-
-  const { error: cuotasError } = await supabase.from("cuota").insert(
-    cronograma.map((c) => ({
-      prestamo_id: prestamo.id,
-      numero: c.numero,
-      fecha_vencimiento: c.fechaVencimiento,
-      monto: c.monto,
-    }))
-  );
-
-  if (cuotasError) {
-    return { error: `El préstamo se creó pero falló el cronograma: ${cuotasError.message}` };
-  }
-
-  revalidatePath(`/clientes/${input.clienteId}/contrato`);
-  return { error: null };
+  if (!resultado.error) revalidatePath(`/clientes/${input.clienteId}/contrato`);
+  return resultado;
 }
 
 export async function cancelarPrestamo(input: { clienteId: string; prestamoId: string }) {

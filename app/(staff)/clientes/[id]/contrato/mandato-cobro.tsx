@@ -34,10 +34,11 @@ function FormularioMandato({ clienteId }: { clienteId: string }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [consentido, setConsentido] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!stripe || !elements) return;
+    if (!stripe || !elements || !consentido) return;
     setPending(true);
     setError(null);
 
@@ -66,8 +67,18 @@ function FormularioMandato({ clienteId }: { clienteId: string }) {
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <PaymentElement />
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          checked={consentido}
+          onChange={(e) => setConsentido(e.target.checked)}
+          className="mt-1"
+        />
+        El cliente autoriza a Loyola Finance Group a cobrar su cuota mensual automáticamente a este método de pago
+        (autopay). Este consentimiento es independiente de la firma del contrato.
+      </label>
       {error && <p className="text-sm text-destructive">{error}</p>}
-      <Button type="submit" disabled={!stripe || pending}>
+      <Button type="submit" disabled={!stripe || pending || !consentido}>
         {pending ? "Guardando…" : "Autorizar método de cobro"}
       </Button>
     </form>

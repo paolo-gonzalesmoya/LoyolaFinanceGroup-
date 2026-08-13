@@ -51,10 +51,14 @@ export async function confirmarMandatoCobroCliente(stripePaymentMethodId: string
   // cliente_id sea el propio, así que esto no necesita el cliente admin.
   await supabase.from("mandato_cobro").update({ estado: "inactivo" }).eq("cliente_id", cliente.id).eq("estado", "activo");
 
+  // autopay_consentido_en queda como su propio registro, separado de
+  // cualquier otra aceptación — el formulario exige el checkbox de
+  // consentimiento antes de poder llegar hasta acá (ver formulario.tsx).
   const { error } = await supabase.from("mandato_cobro").insert({
     cliente_id: cliente.id,
     stripe_payment_method_id: stripePaymentMethodId,
     estado: "activo",
+    autopay_consentido_en: new Date().toISOString(),
   });
 
   if (error) return { error: `No se pudo guardar el método de cobro: ${error.message}` };

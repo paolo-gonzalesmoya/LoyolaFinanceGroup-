@@ -72,11 +72,11 @@ export default function Home() {
               evaluamos, y arrancas tu proyecto.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login" />}>
-                Ver mi cuenta
+              <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/registro" />}>
+                Crea tu cuenta
               </Button>
-              <Link href="/login" className="text-sm text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline">
-                ¿Eres parte del equipo? Ingresa aquí
+              <Link href="/portal-login" className="text-sm text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline">
+                Ya tengo cuenta — ingresar
               </Link>
             </div>
           </div>

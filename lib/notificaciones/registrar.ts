@@ -81,6 +81,33 @@ export async function notificarPrestamoCancelado(supabase: Cliente, input: { cli
   });
 }
 
+// Aviso de rechazo (FCRA "adverse action notice") — contenido mínimo
+// exigido cuando la decisión se basa en información de un buró de
+// crédito: motivo, que la fuente fue Experian, cómo contactarlos, y el
+// derecho del cliente a una copia gratuita de su reporte. Plantilla —
+// los datos de contacto de Experian y el texto exacto deben confirmarse
+// antes de producción.
+export async function notificarCreditoRechazado(
+  supabase: Cliente,
+  input: { clienteId: string; motivoRechazo: string; clienteCorreo: string | null }
+) {
+  const mensaje = [
+    `Tu solicitud de financiamiento fue rechazada. Motivo: ${input.motivoRechazo}.`,
+    "Esta decisión se basó, en parte o en su totalidad, en información de tu reporte de crédito de Experian.",
+    "Tienes derecho a una copia gratuita de tu reporte de Experian si la solicitas dentro de los 60 días siguientes, y a disputar cualquier información inexacta directamente con ellos.",
+    "Contacto de Experian: [PENDIENTE — confirmar dirección y teléfono exactos antes de producción].",
+  ].join(" ");
+
+  await registrarNotificacion(supabase, {
+    destinatario: "cliente",
+    clienteId: input.clienteId,
+    cuotaId: null,
+    tipo: "credito_rechazado",
+    mensaje,
+    correoDestino: input.clienteCorreo,
+  });
+}
+
 export async function notificarReembolso(
   supabase: Cliente,
   input: { clienteId: string; cuotaId: string; numeroCuota: number; monto: number; clienteCorreo: string | null }

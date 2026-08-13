@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getStaffUser } from "@/lib/auth/session";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export default async function ClientesPage() {
@@ -12,7 +13,8 @@ export default async function ClientesPage() {
   const supabase = await createClient();
   const { data: clientes } = await supabase
     .from("cliente")
-    .select("id, nombre, correo, telefono, fecha_registro")
+    .select("id, nombre, correo, telefono, fecha_registro, verificado")
+    .order("verificado", { ascending: true })
     .order("fecha_registro", { ascending: false });
 
   return (
@@ -28,6 +30,7 @@ export default async function ClientesPage() {
             <TableHead>Correo</TableHead>
             <TableHead>Teléfono</TableHead>
             <TableHead>Registrado</TableHead>
+            <TableHead>Estado</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -41,11 +44,18 @@ export default async function ClientesPage() {
               <TableCell>{cliente.correo ?? "—"}</TableCell>
               <TableCell>{cliente.telefono ?? "—"}</TableCell>
               <TableCell>{new Date(cliente.fecha_registro).toLocaleDateString("es")}</TableCell>
+              <TableCell>
+                {cliente.verificado ? (
+                  <Badge variant="outline">Verificado</Badge>
+                ) : (
+                  <Badge variant="destructive">Sin confirmar</Badge>
+                )}
+              </TableCell>
             </TableRow>
           ))}
           {(!clientes || clientes.length === 0) && (
             <TableRow>
-              <TableCell colSpan={4} className="text-center text-muted-foreground">
+              <TableCell colSpan={5} className="text-center text-muted-foreground">
                 Sin clientes todavía — registra el primero con “Nuevo cliente”.
               </TableCell>
             </TableRow>

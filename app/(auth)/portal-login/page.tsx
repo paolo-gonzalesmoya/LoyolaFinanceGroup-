@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState } from "react";
 import { signInCliente } from "@/lib/auth/actions";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -15,7 +16,7 @@ export default function PortalLoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Portal del cliente</CardTitle>
-          <CardDescription>Acceso por invitación de Loyola Finance Group.</CardDescription>
+          <CardDescription>Ingresa con tu cuenta de Loyola Finance Group.</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={action} className="space-y-4">
@@ -32,6 +33,12 @@ export default function PortalLoginPage() {
               {pending ? "Ingresando…" : "Ingresar"}
             </Button>
           </form>
+          <p className="mt-4 text-center text-sm text-muted-foreground">
+            ¿No tienes cuenta?{" "}
+            <Link href="/registro" className="text-foreground underline-offset-4 hover:underline">
+              Regístrate
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </main>

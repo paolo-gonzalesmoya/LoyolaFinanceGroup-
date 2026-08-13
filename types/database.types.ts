@@ -96,10 +96,15 @@ export type Database = {
           fecha_registro: string
           id: string
           nombre: string
-          registrado_por: string
+          registrado_por: string | null
           ssn_itn_cifrado: string | null
           stripe_customer_id: string | null
+          tc_aceptado_en: string | null
+          tc_version: string | null
           telefono: string | null
+          verificado: boolean
+          verificado_en: string | null
+          verificado_por: string | null
         }
         Insert: {
           auth_user_id?: string | null
@@ -108,10 +113,15 @@ export type Database = {
           fecha_registro?: string
           id?: string
           nombre: string
-          registrado_por: string
+          registrado_por?: string | null
           ssn_itn_cifrado?: string | null
           stripe_customer_id?: string | null
+          tc_aceptado_en?: string | null
+          tc_version?: string | null
           telefono?: string | null
+          verificado?: boolean
+          verificado_en?: string | null
+          verificado_por?: string | null
         }
         Update: {
           auth_user_id?: string | null
@@ -120,15 +130,27 @@ export type Database = {
           fecha_registro?: string
           id?: string
           nombre?: string
-          registrado_por?: string
+          registrado_por?: string | null
           ssn_itn_cifrado?: string | null
           stripe_customer_id?: string | null
+          tc_aceptado_en?: string | null
+          tc_version?: string | null
           telefono?: string | null
+          verificado?: boolean
+          verificado_en?: string | null
+          verificado_por?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "cliente_registrado_por_fkey"
             columns: ["registrado_por"]
+            isOneToOne: false
+            referencedRelation: "usuario"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cliente_verificado_por_fkey"
+            columns: ["verificado_por"]
             isOneToOne: false
             referencedRelation: "usuario"
             referencedColumns: ["id"]
@@ -192,6 +214,7 @@ export type Database = {
           registrado_por: string
           solicitud_id: string
           tasa_mensual: number
+          tila_aceptado_en: string | null
         }
         Insert: {
           downpayment_monto: number
@@ -204,6 +227,7 @@ export type Database = {
           registrado_por: string
           solicitud_id: string
           tasa_mensual: number
+          tila_aceptado_en?: string | null
         }
         Update: {
           downpayment_monto?: number
@@ -216,6 +240,7 @@ export type Database = {
           registrado_por?: string
           solicitud_id?: string
           tasa_mensual?: number
+          tila_aceptado_en?: string | null
         }
         Relationships: [
           {
@@ -278,6 +303,7 @@ export type Database = {
       }
       mandato_cobro: {
         Row: {
+          autopay_consentido_en: string | null
           cliente_id: string
           estado: Database["public"]["Enums"]["estado_mandato"]
           fecha_registro: string
@@ -285,6 +311,7 @@ export type Database = {
           stripe_payment_method_id: string
         }
         Insert: {
+          autopay_consentido_en?: string | null
           cliente_id: string
           estado?: Database["public"]["Enums"]["estado_mandato"]
           fecha_registro?: string
@@ -292,6 +319,7 @@ export type Database = {
           stripe_payment_method_id: string
         }
         Update: {
+          autopay_consentido_en?: string | null
           cliente_id?: string
           estado?: Database["public"]["Enums"]["estado_mandato"]
           fecha_registro?: string
@@ -371,6 +399,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      niveles_score: {
+        Row: {
+          activo: boolean
+          dealer_fee_pct: number | null
+          dealer_fee_socio_pct: number | null
+          fecha_registro: string
+          id: string
+          nombre_nivel: string
+          score_max: number
+          score_min: number
+          tasa_interes: number
+        }
+        Insert: {
+          activo?: boolean
+          dealer_fee_pct?: number | null
+          dealer_fee_socio_pct?: number | null
+          fecha_registro?: string
+          id?: string
+          nombre_nivel: string
+          score_max: number
+          score_min: number
+          tasa_interes: number
+        }
+        Update: {
+          activo?: boolean
+          dealer_fee_pct?: number | null
+          dealer_fee_socio_pct?: number | null
+          fecha_registro?: string
+          id?: string
+          nombre_nivel?: string
+          score_max?: number
+          score_min?: number
+          tasa_interes?: number
+        }
+        Relationships: []
       }
       notificacion: {
         Row: {
@@ -591,6 +655,7 @@ export type Database = {
         | "entrada_mora"
         | "prestamo_cancelado"
         | "reembolso"
+        | "credito_rechazado"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -741,6 +806,7 @@ export const Constants = {
         "entrada_mora",
         "prestamo_cancelado",
         "reembolso",
+        "credito_rechazado",
       ],
     },
   },
