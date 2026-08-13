@@ -15,14 +15,18 @@ export function ContratoForm({
   clienteId,
   solicitudId,
   total,
+  cuotasSugeridas,
+  tasaSugerida,
 }: {
   clienteId: string;
   solicitudId: string;
   total: number;
+  cuotasSugeridas?: string | null;
+  tasaSugerida?: string | null;
 }) {
   const [state, action, pending] = useActionState(crearContrato.bind(null, { clienteId, solicitudId }), undefined);
-  const [numeroCuotas, setNumeroCuotas] = useState("12");
-  const [tasaMensual, setTasaMensual] = useState("");
+  const [numeroCuotas, setNumeroCuotas] = useState(cuotasSugeridas && CUOTAS.includes(Number(cuotasSugeridas)) ? cuotasSugeridas : "12");
+  const [tasaMensual, setTasaMensual] = useState(tasaSugerida ?? "");
   const [tilaAceptado, setTilaAceptado] = useState(false);
 
   const downpayment = Math.round(total * 0.5 * 100) / 100;
@@ -46,13 +50,16 @@ export function ContratoForm({
             Monto solicitado: ${total.toFixed(2)} · Downpayment (50%): ${downpayment.toFixed(2)} · A financiar: $
             {financiado.toFixed(2)}
           </p>
+          {tasaSugerida && (
+            <p className="text-sm text-muted-foreground">Cuotas y tasa precargadas desde la simulación que elegiste.</p>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="numero_cuotas">Número de cuotas</Label>
-              <Select name="numero_cuotas" defaultValue="12" onValueChange={(v) => v && setNumeroCuotas(v)}>
+              <Select name="numero_cuotas" defaultValue={numeroCuotas} onValueChange={(v) => v && setNumeroCuotas(v)}>
                 <SelectTrigger id="numero_cuotas" className="w-full">
-                  <SelectValue>{(value: string | null) => value ?? "12"}</SelectValue>
+                  <SelectValue>{(value: string | null) => value ?? numeroCuotas}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {CUOTAS.map((n) => (

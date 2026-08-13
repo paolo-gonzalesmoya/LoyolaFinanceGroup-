@@ -15,8 +15,15 @@ import { InvitarPortalButton } from "./invitar-portal";
 import { ConfirmarClienteButton } from "./confirmar-cliente-button";
 import { SimuladorTasas } from "./simulador-tasas";
 
-export default async function ClienteDetallePage({ params }: PageProps<"/clientes/[id]">) {
+function firstParam(value: string | string[] | undefined): string | null {
+  return (Array.isArray(value) ? value[0] : value) ?? null;
+}
+
+export default async function ClienteDetallePage({ params, searchParams }: PageProps<"/clientes/[id]">) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const tasaSeleccionada = firstParam(resolvedSearchParams.tasa);
+  const cuotasSeleccionadas = firstParam(resolvedSearchParams.cuotas);
   const usuario = await getStaffUser();
   if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
 
@@ -152,7 +159,19 @@ export default async function ClienteDetallePage({ params }: PageProps<"/cliente
       )}
 
       {solicitud?.decision === "aprobado" && (
-        <Button render={<Link href={`/clientes/${cliente.id}/contrato`} />}>Ir a contrato</Button>
+        <Button
+          render={
+            <Link
+              href={
+                tasaSeleccionada && cuotasSeleccionadas
+                  ? `/clientes/${cliente.id}/contrato?tasa=${tasaSeleccionada}&cuotas=${cuotasSeleccionadas}`
+                  : `/clientes/${cliente.id}/contrato`
+              }
+            />
+          }
+        >
+          Ir a contrato
+        </Button>
       )}
     </div>
   );

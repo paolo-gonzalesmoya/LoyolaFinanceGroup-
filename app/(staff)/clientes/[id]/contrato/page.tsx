@@ -9,8 +9,15 @@ import { ContratoForm } from "./contrato-form";
 import { VerificarDownpaymentButton } from "./verificar-downpayment";
 import { CancelarPrestamoButton, ReembolsarButton } from "./acciones-cobranza";
 
-export default async function ContratoPage({ params }: PageProps<"/clientes/[id]/contrato">) {
+function firstParam(value: string | string[] | undefined): string | null {
+  return (Array.isArray(value) ? value[0] : value) ?? null;
+}
+
+export default async function ContratoPage({ params, searchParams }: PageProps<"/clientes/[id]/contrato">) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
+  const tasaSugerida = firstParam(resolvedSearchParams.tasa);
+  const cuotasSugeridas = firstParam(resolvedSearchParams.cuotas);
   const usuario = await getStaffUser();
   if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
 
@@ -89,7 +96,13 @@ export default async function ContratoPage({ params }: PageProps<"/clientes/[id]
             <CardTitle className="text-base">Datos del contrato</CardTitle>
           </CardHeader>
           <CardContent>
-            <ContratoForm clienteId={cliente.id} solicitudId={solicitud.id} total={total} />
+            <ContratoForm
+              clienteId={cliente.id}
+              solicitudId={solicitud.id}
+              total={total}
+              cuotasSugeridas={cuotasSugeridas}
+              tasaSugerida={tasaSugerida}
+            />
           </CardContent>
         </Card>
       )}
