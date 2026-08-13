@@ -50,18 +50,18 @@ Hay dos envíos de correo distintos, con dos mecanismos distintos:
 1. Supabase Dashboard → el proyecto → **Authentication → Emails → SMTP Settings** → activar "Enable Custom SMTP" y cargar:
    - Host: `smtp.resend.com`
    - Port: `465`
-   - Username: `resend`
-   - Password: la misma `RESEND_API_KEY` que está en `.env.local`
-   - Sender email / Sender name: el remitente que se quiera mostrar
+   - Username: literalmente `resend` (fijo, no es un usuario personal)
+   - Password: la `RESEND_API_KEY` de `.env.local` (empieza con `re_...`, no una contraseña inventada)
+   - **Sender email**: mientras no haya dominio propio verificado, tiene que ser `onboarding@resend.dev` — cualquier dirección `@loyolafinancegroup.com` (o cualquier otro dominio) falla con "Error sending confirmation email" porque Resend rechaza el envío desde un dominio no verificado.
 2. Confirmar que **Authentication → Sign In / Providers → Email → "Confirm email"** esté activado — si está apagado, `signUp()` da sesión de una y nunca manda el correo (la app ya se adapta a cualquiera de los dos casos, pero para que exista el correo de confirmación esto tiene que estar prendido).
 
 **b) Notificaciones de la app** (aprobación/rechazo de crédito, cobranza, reembolsos) — las manda el código directamente vía la API de Resend (`lib/notificaciones/email.ts`), usando `RESEND_API_KEY` de `.env.local`. No depende de la configuración de Supabase.
 
-**Restricción compartida por las dos:** sin un dominio propio verificado en Resend (`resend.com` → Domains), el remitente `onboarding@resend.dev` **solo entrega al correo con el que se creó la cuenta de Resend** — cualquier otro destinatario rebota en silencio. El dominio ya está comprado (`loyolafinancegroup.com`) — falta:
+**Restricción compartida por las dos:** sin un dominio propio verificado en Resend (`resend.com` → Domains), el remitente `onboarding@resend.dev` **solo entrega al correo con el que se creó la cuenta de Resend** (`paolo.gonzalesmoya@gmail.com`) — cualquier otro destinatario rebota en silencio. `loyolafinancegroup.com` está cargado en Resend como nombre pero el dominio **todavía no está comprado** (estado "Not Started" — no hay DNS real que verificar). Pendiente cuando se compre un dominio de verdad:
 
-1. Resend Dashboard → **Domains → Add Domain** → `loyolafinancegroup.com`.
+1. Resend Dashboard → **Domains** → el dominio comprado → agregar (o si ya está cargado, retomar) → verificar.
 2. Cargar los registros DNS (SPF/DKIM/DMARC) que Resend da ahí en el proveedor donde se compró el dominio. Verificación puede tardar unos minutos a unas horas.
-3. Una vez verificado: `RESEND_FROM_EMAIL="Loyola Finance Group <notificaciones@loyolafinancegroup.com>"` en `.env.local`/Vercel, y el mismo remitente en el SMTP Settings de Supabase (punto (a) más arriba).
+3. Una vez verificado: `RESEND_FROM_EMAIL="Loyola Finance Group <notificaciones@tudominio.com>"` en `.env.local`/Vercel, y ese mismo remitente en el Sender email de Supabase (punto (a) más arriba).
 
 ## 6. Dónde mirar en general
 
