@@ -11,8 +11,8 @@ const BENEFICIOS = [
   },
   {
     icono: CreditCard,
-    titulo: "Tu downpayment y método de cobro",
-    descripcion: "Paga tu downpayment inicial y administra la tarjeta o cuenta con la que se te cobra.",
+    titulo: "Tu pago inicial y método de cobro",
+    descripcion: "Realiza tu pago inicial y administra la tarjeta o cuenta con la que se te cobra.",
   },
   {
     icono: Bell,

@@ -25,7 +25,7 @@ const BENEFICIOS = [
   {
     icono: ShieldCheck,
     titulo: "Tus datos, protegidos",
-    descripcion: "Tu información sensible se guarda cifrada. Nunca la compartimos con nadie más.",
+    descripcion: "Tu información sensible se guarda cifrada y nunca se comparte con terceros.",
   },
   {
     icono: Clock,
@@ -52,7 +52,7 @@ export default function Home() {
           <span className="font-[family-name:var(--font-display)] text-lg italic text-white">Loyola Finance Group</span>
           <nav className="flex items-center gap-4 text-sm">
             <Link href="/login" className="text-white/70 transition-colors hover:text-white">
-              Acceso staff
+              Ingreso Administrativo
             </Link>
             <Button size="sm" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login" />}>
               Portal del cliente
@@ -65,20 +65,20 @@ export default function Home() {
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
-            <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Financiamiento para tu hogar</p>
+            <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Financiamiento confiable para tu hogar en Texas</p>
             <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
-              Tu techo, tu aire acondicionado, tu remodelación — pagados a tu ritmo.
+              Tu techo, tu aire acondicionado, tu remodelación — financiados con claridad.
             </h1>
             <p className="mt-6 max-w-lg text-base text-white/70 sm:text-lg">
-              Financiamos los proyectos de tu hogar con cuotas mensuales claras y sin sorpresas. Solicita, te
-              evaluamos, y arrancas tu proyecto.
+              Financiamos los proyectos de tu hogar con cuotas mensuales fijas, tasas claras y sin letra chica.
+              Solicita, te evaluamos, y arrancas tu proyecto.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
               <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/registro" />}>
                 Crea tu cuenta
               </Button>
               <Link href="/portal-login" className="text-sm text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline">
-                Ya tengo cuenta — ingresar
+                Ingresar a mi Portal
               </Link>
             </div>
           </div>
@@ -118,14 +118,14 @@ export default function Home() {
         <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-6 py-10 sm:flex-row sm:items-center">
           <div>
             <p className="font-[family-name:var(--font-display)] italic text-foreground">Loyola Finance Group</p>
-            <p className="mt-1 text-sm text-muted-foreground">Financiamiento y cobranza para negocios de servicios.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Financiamiento directo para proyectos de construcción y mejoras del hogar en Texas.</p>
           </div>
           <div className="flex gap-4 text-sm">
             <Link href="/portal-login" className="text-muted-foreground hover:text-foreground">
               Portal del cliente
             </Link>
             <Link href="/login" className="text-muted-foreground hover:text-foreground">
-              Acceso staff
+              Ingreso Administrativo
             </Link>
           </div>
         </div>

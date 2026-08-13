@@ -27,7 +27,7 @@ export function DownpaymentCheckout({
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Antes de pagar tu downpayment, necesitamos que autorices una tarjeta o cuenta bancaria.
+            Antes de realizar tu pago inicial, necesitamos que autorices una tarjeta o cuenta bancaria.
           </p>
           <Button render={<Link href="/portal/metodo-pago" />}>Autorizar método de cobro</Button>
         </CardContent>
@@ -38,7 +38,7 @@ export function DownpaymentCheckout({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Paga tu downpayment inicial</CardTitle>
+        <CardTitle className="text-base">Realiza tu pago inicial</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-sm text-muted-foreground">
@@ -55,7 +55,7 @@ export function DownpaymentCheckout({
             })
           }
         >
-          {pending ? "Cobrando…" : "Pagar downpayment ahora"}
+          {pending ? "Cobrando…" : "Pagar Ahora"}
         </Button>
         {error && <p className="text-sm text-destructive">{error}</p>}
       </CardContent>

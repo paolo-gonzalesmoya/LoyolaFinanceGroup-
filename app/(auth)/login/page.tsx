@@ -14,8 +14,8 @@ export default function LoginPage() {
     <main className="flex min-h-svh items-center justify-center p-8">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Acceso staff</CardTitle>
-          <CardDescription>Solo administradores.</CardDescription>
+          <CardTitle>Ingreso Administrativo</CardTitle>
+          <CardDescription>Acceso exclusivo para el equipo de Loyola.</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={action} className="space-y-4">

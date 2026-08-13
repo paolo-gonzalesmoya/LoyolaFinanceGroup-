@@ -20,7 +20,7 @@ export default async function PortalLayout({ children }: { children: React.React
           <span className="text-muted-foreground">{cliente.nombre}</span>
           <form action={signOutCliente}>
             <Button type="submit" variant="ghost" size="sm">
-              Salir
+              Cerrar Sesión
             </Button>
           </form>
         </div>

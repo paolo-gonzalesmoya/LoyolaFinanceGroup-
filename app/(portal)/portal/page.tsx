@@ -115,7 +115,7 @@ export default async function PortalPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              {contrato.numero_cuotas} cuotas · {contrato.tasa_mensual}% mensual · Downpayment inicial: $
+              {contrato.numero_cuotas} cuotas · {contrato.tasa_mensual}% mensual · Pago inicial: $
               {Number(contrato.downpayment_monto).toFixed(2)}
             </p>
           </CardContent>
@@ -160,7 +160,7 @@ export default async function PortalPage() {
       <div className="max-w-2xl">
         <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Tu downpayment ya se cobró — estamos terminando de armar tu cronograma de pagos.
+          Tu pago inicial ya se cobró — estamos terminando de armar tu cronograma de pagos.
         </p>
       </div>
     );
