@@ -21,7 +21,16 @@ export default async function ClientesPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-semibold">Clientes</h1>
-        <Button render={<Link href="/clientes/nuevo" />}>Nuevo cliente</Button>
+        <div className="flex items-center gap-2">
+          {/* <a> a propósito, no <Link>: /clientes/export es un archivo para
+              descargar (Content-Disposition: attachment), no una página —
+              Link intentaría una transición client-side y rompería la descarga. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+          <Button variant="outline" render={<a href="/clientes/export" />}>
+            Descargar Excel
+          </Button>
+          <Button render={<Link href="/clientes/nuevo" />}>Nuevo cliente</Button>
+        </div>
       </div>
       <Table>
         <TableHeader>

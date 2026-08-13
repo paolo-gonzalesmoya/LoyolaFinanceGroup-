@@ -36,19 +36,6 @@ export function NuevoNivelScoreForm() {
             <Label htmlFor="tasa_interes">Tasa mensual (%)</Label>
             <Input id="tasa_interes" name="tasa_interes" type="number" step="0.01" required />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="dealer_fee_pct">Dealer fee (%, opcional)</Label>
-              <Input id="dealer_fee_pct" name="dealer_fee_pct" type="number" step="0.01" />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="dealer_fee_socio_pct">Dealer fee del socio (%, opcional)</Label>
-              <Input id="dealer_fee_socio_pct" name="dealer_fee_socio_pct" type="number" step="0.01" />
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Los dos dealer fee son solo información de reparto interno — no cambian lo que paga el cliente.
-          </p>
 
           {state?.error && <p className="text-sm text-destructive">{state.error}</p>}
 

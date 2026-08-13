@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Mail, UserCheck, Calculator } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { HeroPatternStrips } from "@/components/hero-pattern-strips";
 import { RegistroForm } from "./form";
@@ -24,18 +25,29 @@ const PASOS = [
 
 export default function RegistroPage() {
   return (
-    <main>
+    <main className="scroll-smooth">
       <section className="relative overflow-hidden bg-[#101d33]">
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
-          <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Portal del cliente</p>
-          <h1 className="mt-4 max-w-2xl font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
-            Crea tu cuenta
-          </h1>
-          <p className="mt-6 max-w-lg text-base text-white/70 sm:text-lg">
-            Regístrate y confirma tu correo para entrar al portal. Tu solicitud avanza de verdad una vez que
-            confirmemos tu identidad.
-          </p>
+          <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Portal del cliente</p>
+              <h1 className="mt-4 max-w-2xl font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
+                Crea tu cuenta
+              </h1>
+              <p className="mt-6 max-w-lg text-base text-white/70 sm:text-lg">
+                Regístrate y confirma tu correo para entrar al portal. Tu solicitud avanza de verdad una vez que
+                confirmemos tu identidad.
+              </p>
+            </div>
+            <Button
+              size="lg"
+              className="shrink-0 bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]"
+              render={<a href="#formulario" />}
+            >
+              Ir al formulario
+            </Button>
+          </div>
         </div>
       </section>
 
@@ -54,7 +66,7 @@ export default function RegistroPage() {
         </div>
       </section>
 
-      <section className="border-t bg-muted/40">
+      <section id="formulario" className="border-t bg-muted/40 scroll-mt-6">
         <div className="mx-auto max-w-6xl px-6 py-16 sm:py-20">
           <div className="mx-auto max-w-md">
             <Card>
