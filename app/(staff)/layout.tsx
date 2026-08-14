@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getStaffUser } from "@/lib/auth/session";
 import { signOut } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 
 // Chequeo optimista de UX (redirige si no hay fila `usuario`) — la frontera
 // dura de verdad es RLS en cada tabla, no esto. Ver proxy.ts y las políticas
@@ -22,7 +23,9 @@ export default async function StaffLayout({ children }: { children: React.ReactN
     <div className="min-h-svh">
       <header className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-6">
-          <span className="font-semibold">Loyola Finance Group</span>
+          <Link href="/dashboard">
+            <Logo className="h-8 w-auto" />
+          </Link>
           <nav className="flex gap-4 text-sm">
             {links.map((link) => (
               <Link key={link.href} href={link.href} className="text-muted-foreground hover:text-foreground">

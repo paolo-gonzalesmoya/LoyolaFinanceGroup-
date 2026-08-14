@@ -2,6 +2,8 @@ import Link from "next/link";
 import { ShieldCheck, Clock, CreditCard, Home as HomeIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroPatternStrips } from "@/components/hero-pattern-strips";
+import { Logo } from "@/components/logo";
+import { SiteFooter } from "@/components/site-footer";
 
 const PASOS = [
   {
@@ -49,8 +51,11 @@ export default function Home() {
     <main>
       <header className="border-b border-white/10 bg-[#101d33]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <span className="font-[family-name:var(--font-display)] text-lg italic text-white">Loyola Finance Group</span>
+          <Link href="/"><Logo onDark className="h-7 w-auto" /></Link>
           <nav className="flex items-center gap-4 text-sm">
+            <Link href="/nosotros" className="text-white/70 transition-colors hover:text-white">
+              Nosotros
+            </Link>
             <Link href="/login" className="text-white/70 transition-colors hover:text-white">
               Ingreso Administrativo
             </Link>
@@ -114,22 +119,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer className="border-t bg-background">
-        <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-6 px-6 py-10 sm:flex-row sm:items-center">
-          <div>
-            <p className="font-[family-name:var(--font-display)] italic text-foreground">Loyola Finance Group</p>
-            <p className="mt-1 text-sm text-muted-foreground">Financiamiento directo para proyectos de construcción y mejoras del hogar en Texas.</p>
-          </div>
-          <div className="flex gap-4 text-sm">
-            <Link href="/portal-login" className="text-muted-foreground hover:text-foreground">
-              Portal del cliente
-            </Link>
-            <Link href="/login" className="text-muted-foreground hover:text-foreground">
-              Ingreso Administrativo
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <SiteFooter />
     </main>
   );
 }

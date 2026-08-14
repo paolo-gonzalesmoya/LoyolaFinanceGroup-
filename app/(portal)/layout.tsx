@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getClienteUser } from "@/lib/auth/session";
 import { signOutCliente } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 
 // Chequeo optimista de UX, igual que (staff)/layout.tsx — la frontera dura
 // es RLS (ver supabase/migrations/..._fase7_portal_cliente_rls.sql).
@@ -13,8 +14,8 @@ export default async function PortalLayout({ children }: { children: React.React
   return (
     <div className="min-h-svh">
       <header className="flex items-center justify-between border-b p-4">
-        <Link href="/portal" className="font-semibold">
-          Loyola Finance Group
+        <Link href="/portal">
+          <Logo className="h-8 w-auto" />
         </Link>
         <div className="flex items-center gap-3 text-sm">
           <span className="text-muted-foreground">{cliente.nombre}</span>

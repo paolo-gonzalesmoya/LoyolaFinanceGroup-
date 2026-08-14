@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Logo } from "@/components/logo";
 import { RegistroForm } from "../form";
 
 export default function RegistroFormularioPage() {
   return (
-    <main className="flex min-h-svh items-center justify-center p-8">
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 p-8">
+      <Logo className="h-10 w-auto" />
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>Datos de tu cuenta</CardTitle>

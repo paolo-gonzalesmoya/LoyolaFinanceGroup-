@@ -11,7 +11,7 @@ const newsreader = Newsreader({ subsets: ["latin"], variable: "--font-display", 
 
 export const metadata: Metadata = {
   title: "Loyola Finance Group",
-  description: "Financiamiento y cobranza para negocios de servicios.",
+  description: "Financiamiento directo para proyectos de construcción y mejoras del hogar en Texas.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

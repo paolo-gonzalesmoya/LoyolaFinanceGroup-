@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Mail, UserCheck, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroPatternStrips } from "@/components/hero-pattern-strips";
+import { Logo } from "@/components/logo";
 
 const PASOS = [
   {
@@ -27,6 +28,9 @@ export default function RegistroPage() {
       <section className="relative overflow-hidden bg-[#101d33]">
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
+          <Link href="/" className="mb-8 inline-block">
+            <Logo onDark className="h-7 w-auto" />
+          </Link>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-2xl">
               <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Nueva cuenta</p>

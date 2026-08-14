@@ -6,12 +6,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/logo";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(signIn, undefined);
 
   return (
-    <main className="flex min-h-svh items-center justify-center p-8">
+    <main className="flex min-h-svh flex-col items-center justify-center gap-6 p-8">
+      <Logo className="h-10 w-auto" />
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Ingreso Administrativo</CardTitle>
