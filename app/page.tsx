@@ -57,7 +57,7 @@ export default function Home() {
               Nosotros
             </Link>
             <Link href="/login" className="text-white/70 transition-colors hover:text-white">
-              Ingreso Administrativo
+              Acceso Staff
             </Link>
             <Button size="sm" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login" />}>
               Portal del cliente
@@ -79,8 +79,12 @@ export default function Home() {
               Solicita, te evaluamos, y arrancas tu proyecto.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/registro" />}>
-                Crea tu cuenta
+              <Button
+                size="lg"
+                className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]"
+                render={<a href="https://www.loyolaconstructions.com/" target="_blank" rel="noopener noreferrer" />}
+              >
+                Habla con tu contratista
               </Button>
               <Link href="/portal-login" className="text-sm text-white/60 underline-offset-4 transition-colors hover:text-white hover:underline">
                 Ingresar a mi Portal

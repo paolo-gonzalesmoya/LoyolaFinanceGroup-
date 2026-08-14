@@ -27,7 +27,7 @@ export function SiteFooter() {
                 Portal del cliente
               </Link>
               <Link href="/login" className="text-muted-foreground hover:text-foreground">
-                Ingreso Administrativo
+                Acceso Staff
               </Link>
             </div>
           </div>

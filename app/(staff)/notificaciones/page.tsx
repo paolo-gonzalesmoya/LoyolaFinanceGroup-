@@ -8,8 +8,10 @@ import { MarcarLeidaButton } from "./marcar-leida";
 
 export default async function NotificacionesPage() {
   const usuario = await getStaffUser();
-  if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) redirect("/dashboard");
 
+  // Sin filtro explícito: la RLS scoped al asesor (vendedor_select en
+  // notificacion) ya limita a las de sus propios clientes.
   const supabase = await createClient();
   const { data: notificaciones } = await supabase
     .from("notificacion")

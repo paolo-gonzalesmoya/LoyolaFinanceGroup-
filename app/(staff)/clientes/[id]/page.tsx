@@ -25,8 +25,12 @@ export default async function ClienteDetallePage({ params, searchParams }: PageP
   const tasaSeleccionada = firstParam(resolvedSearchParams.tasa);
   const cuotasSeleccionadas = firstParam(resolvedSearchParams.cuotas);
   const usuario = await getStaffUser();
-  if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) redirect("/dashboard");
 
+  // Sin filtro explícito por registrado_por: la RLS scoped al asesor
+  // (vendedor_select en cliente) hace que este .single() no encuentre nada
+  // si el cliente no es suyo — notFound() abajo cubre ese caso igual que
+  // uno inexistente.
   const supabase = await createClient();
   const { data: cliente } = await supabase.from("cliente").select("*").eq("id", id).single();
   if (!cliente) notFound();
@@ -48,6 +52,14 @@ export default async function ClienteDetallePage({ params, searchParams }: PageP
       .eq("activo", true)
       .order("score_min"),
   ]);
+
+  // Una solicitud solo puede tener un contrato (contrato.solicitud_id es
+  // 1 a 1) — si ya existe, no tiene sentido seguir ofreciendo el simulador
+  // ni pedir elegir un plazo: /clientes/[id]/contrato siempre va a mostrar
+  // este mismo contrato sin importar qué se elija acá.
+  const { data: contratoExistente } = solicitud
+    ? await supabase.from("contrato").select("id, numero_cuotas, tasa_anual").eq("solicitud_id", solicitud.id).maybeSingle()
+    : { data: null };
 
   return (
     <div className="max-w-2xl space-y-4">
@@ -74,8 +86,28 @@ export default async function ClienteDetallePage({ params, searchParams }: PageP
         </CardHeader>
         <CardContent className="space-y-1 text-sm">
           <p>
-            <span className="text-muted-foreground">Dirección:</span> {cliente.direccion ?? "—"}
+            <span className="text-muted-foreground">Dirección de correspondencia:</span>{" "}
+            {cliente.direccion ?? "—"}
+            {(cliente.ciudad || cliente.estado || cliente.codigo_postal) &&
+              `, ${[cliente.ciudad, cliente.estado, cliente.codigo_postal].filter(Boolean).join(" ")}`}
           </p>
+          {!cliente.instalacion_misma_direccion && (
+            <p>
+              <span className="text-muted-foreground">Dirección de instalación:</span>{" "}
+              {cliente.direccion_instalacion ?? "—"}
+              {(cliente.ciudad_instalacion || cliente.estado_instalacion || cliente.codigo_postal_instalacion) &&
+                `, ${[cliente.ciudad_instalacion, cliente.estado_instalacion, cliente.codigo_postal_instalacion].filter(Boolean).join(" ")}`}
+            </p>
+          )}
+          <p>
+            <span className="text-muted-foreground">Fecha de nacimiento:</span> {cliente.fecha_nacimiento ?? "—"}
+          </p>
+          {(cliente.licencia_numero || cliente.licencia_estado) && (
+            <p>
+              <span className="text-muted-foreground">Licencia de conducir:</span> {cliente.licencia_numero ?? "—"}
+              {cliente.licencia_estado ? ` (${cliente.licencia_estado})` : ""}
+            </p>
+          )}
           <p>
             <span className="text-muted-foreground">Teléfono:</span> {cliente.telefono ?? "—"}
           </p>
@@ -139,7 +171,22 @@ export default async function ClienteDetallePage({ params, searchParams }: PageP
         </CardContent>
       </Card>
 
-      {solicitud && (
+      {contratoExistente && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Ya existe un contrato para esta solicitud</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <p className="text-muted-foreground">
+              {contratoExistente.numero_cuotas} cuotas · {contratoExistente.tasa_anual}% anual. No se puede crear
+              otro contrato para la misma solicitud — entra a este para verlo o gestionarlo.
+            </p>
+            <Button render={<Link href={`/clientes/${cliente.id}/contrato`} />}>Ver contrato</Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {solicitud && !contratoExistente && (
         <SimuladorTasas
           montoSolicitado={Number(solicitud.monto_solicitado)}
           niveles={niveles ?? []}
@@ -159,6 +206,7 @@ export default async function ClienteDetallePage({ params, searchParams }: PageP
       )}
 
       {solicitud?.decision === "aprobado" &&
+        !contratoExistente &&
         (tasaSeleccionada && cuotasSeleccionadas ? (
           <Button render={<Link href={`/clientes/${cliente.id}/contrato?tasa=${tasaSeleccionada}&cuotas=${cuotasSeleccionadas}`} />}>
             Ir a contrato

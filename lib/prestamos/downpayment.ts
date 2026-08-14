@@ -105,7 +105,11 @@ export async function cobrarDownpayment(
     return { error: `No se pudo crear el préstamo: ${prestamoError?.message ?? "error desconocido"}` };
   }
 
-  const cronograma = generarCronograma(montoFinanciado, Number(contrato.tasa_mensual), contrato.numero_cuotas, new Date());
+  // contrato.tasa_anual es ANUAL (ver 20260814040000_tasa_anual_no_mensual.sql)
+  // — generarCronograma espera la tasa periódica mensual, así que se divide
+  // acá, en el único punto donde de verdad se calcula el cronograma real.
+  const tasaMensual = Number(contrato.tasa_anual) / 12;
+  const cronograma = generarCronograma(montoFinanciado, tasaMensual, contrato.numero_cuotas, new Date());
 
   const { error: cuotasError } = await supabase.from("cuota").insert(
     cronograma.map((c) => ({

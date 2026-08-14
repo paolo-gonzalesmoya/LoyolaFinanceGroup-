@@ -11,8 +11,22 @@ import { registrarReembolso } from "@/lib/ledger/movimientos";
 import { notificarPrestamoCancelado, notificarReembolso } from "@/lib/notificaciones/registrar";
 import { cobrarDownpayment } from "@/lib/prestamos/downpayment";
 
-const NUMERO_CUOTAS_VALIDAS = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
+const NUMERO_CUOTAS_VALIDAS = [12, 18, 24, 36, 48, 60, 72, 84];
 
+// Admin y asesor comparten estas acciones — la RLS scoped a registrado_por
+// (ver 20260814012000_rol_asesor_gestion_clientes.sql y
+// 20260814020000_vendedor_delete_solicitud_credito.sql) es lo que de verdad
+// limita al asesor a los clientes/contratos/préstamos que él registró.
+async function requireStaff() {
+  const usuario = await getStaffUser();
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) return null;
+  return usuario;
+}
+
+// El método de cobro y el downpayment ahora los hace el cliente desde su
+// propio portal (ver app/(portal)/portal/metodo-pago y downpayment-actions.ts)
+// — estas acciones quedan como respaldo EXCEPCIONAL, admin-only, no para
+// asesor (ver [[loyola-flujo-aceptacion-cliente]] en memoria del proyecto).
 async function requireAdmin() {
   const usuario = await getStaffUser();
   if (!usuario || usuario.rol !== "admin") return null;
@@ -84,27 +98,22 @@ export async function crearContrato(
   _prevState: { error: string | null } | undefined,
   formData: FormData
 ) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
   const numeroCuotas = Number(formData.get("numero_cuotas"));
-  const tasaMensual = Number(formData.get("tasa_mensual"));
+  const tasaAnual = Number(formData.get("tasa_anual"));
   const tilaAceptado = formData.get("tila_aceptado") === "on";
 
   if (!NUMERO_CUOTAS_VALIDAS.includes(numeroCuotas)) return { error: "Número de cuotas inválido." };
-  if (!tasaMensual || tasaMensual <= 0) return { error: "La tasa mensual debe ser mayor a 0." };
-  if (!tilaAceptado) return { error: "Confirma que el cliente recibió y revisó el disclosure antes de firmar." };
+  if (!tasaAnual || tasaAnual <= 0) return { error: "La tasa anual debe ser mayor a 0." };
+  if (!tilaAceptado) return { error: "Confirma que revisaste el disclosure con el cliente antes de crear el contrato." };
 
   const supabase = await createClient();
 
-  const { data: mandato } = await supabase
-    .from("mandato_cobro")
-    .select("id")
-    .eq("cliente_id", input.clienteId)
-    .eq("estado", "activo")
-    .maybeSingle();
-  if (!mandato) return { error: "Primero hay que autorizar un método de cobro." };
-
+  // El método de cobro ya NO se pide acá — lo autoriza el cliente mismo
+  // desde su portal, después de aceptar los términos de este contrato
+  // (contrato.cliente_acepto_en, ver /portal/contrato).
   const { data: solicitud } = await supabase
     .from("solicitud_credito")
     .select("monto_solicitado")
@@ -125,7 +134,7 @@ export async function crearContrato(
     .insert({
       solicitud_id: input.solicitudId,
       numero_cuotas: numeroCuotas,
-      tasa_mensual: tasaMensual,
+      tasa_anual: tasaAnual,
       downpayment_monto: downpaymentMonto,
       registrado_por: usuario.id,
       tila_aceptado_en: new Date().toISOString(),
@@ -153,7 +162,7 @@ export async function verificarDownpayment(input: { clienteId: string; contratoI
 }
 
 export async function cancelarPrestamo(input: { clienteId: string; prestamoId: string }) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
   const supabase = await createClient();
@@ -178,7 +187,7 @@ export async function cancelarPrestamo(input: { clienteId: string; prestamoId: s
 }
 
 export async function reembolsarMovimiento(input: { clienteId: string; movimientoId: string }) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
   const supabase = await createClient();

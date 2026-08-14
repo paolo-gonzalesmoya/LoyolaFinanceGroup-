@@ -33,7 +33,7 @@ export function NuevoNivelScoreForm() {
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="tasa_interes">Tasa mensual (%)</Label>
+            <Label htmlFor="tasa_interes">Tasa anual (%)</Label>
             <Input id="tasa_interes" name="tasa_interes" type="number" step="0.01" required />
           </div>
 
@@ -67,7 +67,7 @@ export function ListaNivelesScore({ niveles }: { niveles: NivelRow[] }) {
               {nivel.nombre_nivel} <span className="text-muted-foreground">· {nivel.score_min}–{nivel.score_max}</span>
             </p>
             <div className="mt-1 flex gap-1.5">
-              <Badge variant="secondary">{nivel.tasa_interes}% mensual</Badge>
+              <Badge variant="secondary">{nivel.tasa_interes}% anual</Badge>
               <Badge variant={nivel.activo ? "outline" : "destructive"}>{nivel.activo ? "Activo" : "Desactivado"}</Badge>
             </div>
           </div>

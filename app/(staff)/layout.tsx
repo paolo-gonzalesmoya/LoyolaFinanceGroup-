@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { StaffNav } from "./staff-nav";
 
+const ROL_LABEL: Record<string, string> = { admin: "Admin", vendedor: "Asesor" };
+
 // Chequeo optimista de UX (redirige si no hay fila `usuario`) — la frontera
 // dura de verdad es RLS en cada tabla, no esto. Ver proxy.ts y las políticas
 // en supabase/migrations.
@@ -21,11 +23,11 @@ export default async function StaffLayout({ children }: { children: React.ReactN
             <Logo onDark className="h-8 w-auto" />
           </Link>
         </div>
-        <StaffNav />
+        <StaffNav rol={usuario.rol} />
         <div className="border-t border-white/10 p-4">
           <Link href="/cuenta" className="block text-sm text-white/70 transition-colors hover:text-white">
             <span className="font-medium">{usuario.nombre}</span>
-            <span className="block text-xs tracking-wide text-white/40 uppercase">{usuario.rol}</span>
+            <span className="block text-xs tracking-wide text-white/40 uppercase">{ROL_LABEL[usuario.rol] ?? usuario.rol}</span>
           </Link>
           <form action={signOut} className="mt-3">
             <Button type="submit" variant="ghost" size="sm" className="w-full justify-start text-white/70 hover:bg-white/10 hover:text-white">

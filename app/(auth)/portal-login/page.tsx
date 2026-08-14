@@ -43,14 +43,6 @@ export default function PortalLoginPage() {
               </p>
             </div>
             <div className="flex shrink-0 gap-3">
-              <Button
-                size="lg"
-                variant="ghost"
-                className="border border-white/30 bg-transparent text-white hover:bg-white/10 hover:text-white"
-                render={<Link href="/registro/formulario" />}
-              >
-                Registrar
-              </Button>
               <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login/ingresar" />}>
                 Ingresar
               </Button>

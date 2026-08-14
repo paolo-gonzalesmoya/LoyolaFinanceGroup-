@@ -90,12 +90,26 @@ export type Database = {
       }
       cliente: {
         Row: {
+          apellido: string | null
           auth_user_id: string | null
+          ciudad: string | null
+          ciudad_instalacion: string | null
+          codigo_postal: string | null
+          codigo_postal_instalacion: string | null
           correo: string | null
           direccion: string | null
+          direccion_instalacion: string | null
+          estado: string | null
+          estado_instalacion: string | null
+          fecha_nacimiento: string | null
           fecha_registro: string
           id: string
+          instalacion_misma_direccion: boolean
+          licencia_estado: string | null
+          licencia_numero: string | null
           nombre: string
+          nombre_medio: string | null
+          nombre_pila: string | null
           registrado_por: string | null
           ssn_itn_cifrado: string | null
           stripe_customer_id: string | null
@@ -107,12 +121,26 @@ export type Database = {
           verificado_por: string | null
         }
         Insert: {
+          apellido?: string | null
           auth_user_id?: string | null
+          ciudad?: string | null
+          ciudad_instalacion?: string | null
+          codigo_postal?: string | null
+          codigo_postal_instalacion?: string | null
           correo?: string | null
           direccion?: string | null
+          direccion_instalacion?: string | null
+          estado?: string | null
+          estado_instalacion?: string | null
+          fecha_nacimiento?: string | null
           fecha_registro?: string
           id?: string
+          instalacion_misma_direccion?: boolean
+          licencia_estado?: string | null
+          licencia_numero?: string | null
           nombre: string
+          nombre_medio?: string | null
+          nombre_pila?: string | null
           registrado_por?: string | null
           ssn_itn_cifrado?: string | null
           stripe_customer_id?: string | null
@@ -124,12 +152,26 @@ export type Database = {
           verificado_por?: string | null
         }
         Update: {
+          apellido?: string | null
           auth_user_id?: string | null
+          ciudad?: string | null
+          ciudad_instalacion?: string | null
+          codigo_postal?: string | null
+          codigo_postal_instalacion?: string | null
           correo?: string | null
           direccion?: string | null
+          direccion_instalacion?: string | null
+          estado?: string | null
+          estado_instalacion?: string | null
+          fecha_nacimiento?: string | null
           fecha_registro?: string
           id?: string
+          instalacion_misma_direccion?: boolean
+          licencia_estado?: string | null
+          licencia_numero?: string | null
           nombre?: string
+          nombre_medio?: string | null
+          nombre_pila?: string | null
           registrado_por?: string | null
           ssn_itn_cifrado?: string | null
           stripe_customer_id?: string | null
@@ -204,6 +246,7 @@ export type Database = {
       }
       contrato: {
         Row: {
+          cliente_acepto_en: string | null
           downpayment_monto: number
           downpayment_pagado: boolean
           downpayment_stripe_payment_intent_id: string | null
@@ -213,10 +256,11 @@ export type Database = {
           numero_cuotas: number
           registrado_por: string
           solicitud_id: string
-          tasa_mensual: number
+          tasa_anual: number
           tila_aceptado_en: string | null
         }
         Insert: {
+          cliente_acepto_en?: string | null
           downpayment_monto: number
           downpayment_pagado?: boolean
           downpayment_stripe_payment_intent_id?: string | null
@@ -226,10 +270,11 @@ export type Database = {
           numero_cuotas: number
           registrado_por: string
           solicitud_id: string
-          tasa_mensual: number
+          tasa_anual: number
           tila_aceptado_en?: string | null
         }
         Update: {
+          cliente_acepto_en?: string | null
           downpayment_monto?: number
           downpayment_pagado?: boolean
           downpayment_stripe_payment_intent_id?: string | null
@@ -239,7 +284,7 @@ export type Database = {
           numero_cuotas?: number
           registrado_por?: string
           solicitud_id?: string
-          tasa_mensual?: number
+          tasa_anual?: number
           tila_aceptado_en?: string | null
         }
         Relationships: [
@@ -631,9 +676,19 @@ export type Database = {
       }
     }
     Functions: {
+      cliente_de_vendedor: { Args: { p_cliente_id: string }; Returns: boolean }
+      contrato_de_vendedor: {
+        Args: { p_contrato_id: string }
+        Returns: boolean
+      }
       current_cliente_id: { Args: never; Returns: string }
       current_usuario_id: { Args: never; Returns: string }
       is_admin: { Args: never; Returns: boolean }
+      is_vendedor: { Args: never; Returns: boolean }
+      prestamo_de_vendedor: {
+        Args: { p_prestamo_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       decision_credito: "pendiente" | "aprobado" | "rechazado"

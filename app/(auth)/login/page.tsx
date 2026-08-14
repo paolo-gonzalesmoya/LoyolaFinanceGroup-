@@ -16,7 +16,7 @@ export default function LoginPage() {
       <Logo className="h-10 w-auto" />
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>Ingreso Administrativo</CardTitle>
+          <CardTitle>Acceso Staff</CardTitle>
           <CardDescription>Acceso exclusivo para el equipo de Loyola.</CardDescription>
         </CardHeader>
         <CardContent>

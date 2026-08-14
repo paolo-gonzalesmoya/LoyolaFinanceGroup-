@@ -16,34 +16,80 @@ async function requireAdmin() {
   return usuario;
 }
 
+// Admin y asesor comparten estas acciones — la RLS agregada en
+// 20260814012000_rol_asesor_gestion_clientes.sql es la que de verdad
+// limita al asesor a los clientes que él registró (registrado_por); acá
+// solo se descarta a cualquiera que no sea staff.
+async function requireStaff() {
+  const usuario = await getStaffUser();
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) return null;
+  return usuario;
+}
+
 export async function crearCliente(_prevState: { error: string } | undefined, formData: FormData) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
-  const nombre = String(formData.get("nombre") ?? "").trim();
-  const direccion = String(formData.get("direccion") ?? "").trim() || null;
+  const nombrePila = String(formData.get("nombre_pila") ?? "").trim();
+  const nombreMedio = String(formData.get("nombre_medio") ?? "").trim() || null;
+  const apellido = String(formData.get("apellido") ?? "").trim();
+  const direccion = String(formData.get("direccion") ?? "").trim();
+  const ciudad = String(formData.get("ciudad") ?? "").trim();
+  const estado = String(formData.get("estado") ?? "").trim();
+  const codigoPostal = String(formData.get("codigo_postal") ?? "").trim();
+  const licenciaNumero = String(formData.get("licencia_numero") ?? "").trim() || null;
+  const licenciaEstado = String(formData.get("licencia_estado") ?? "").trim() || null;
+  const fechaNacimiento = String(formData.get("fecha_nacimiento") ?? "").trim();
   const telefono = String(formData.get("telefono") ?? "").trim() || null;
   const correo = String(formData.get("correo") ?? "").trim() || null;
   const autorizado = formData.get("autorizado") === "on";
   const ssnItn = String(formData.get("ssn_itn") ?? "").trim();
+  const instalacionMismaDireccion = String(formData.get("instalacion_misma_direccion") ?? "si") === "si";
+  const direccionInstalacion = String(formData.get("direccion_instalacion") ?? "").trim() || null;
+  const ciudadInstalacion = String(formData.get("ciudad_instalacion") ?? "").trim() || null;
+  const estadoInstalacion = String(formData.get("estado_instalacion") ?? "").trim() || null;
+  const codigoPostalInstalacion = String(formData.get("codigo_postal_instalacion") ?? "").trim() || null;
 
-  if (!nombre) return { error: "El nombre es obligatorio." };
+  if (!nombrePila || !apellido) return { error: "El nombre y apellido son obligatorios." };
+  if (!direccion || !ciudad || !estado || !codigoPostal) {
+    return { error: "La dirección de correspondencia (dirección, ciudad, estado y código postal) es obligatoria." };
+  }
+  if (!fechaNacimiento) return { error: "La fecha de nacimiento es obligatoria." };
   if (!autorizado) return { error: "Confirma que el cliente autorizó la captura de sus datos y la consulta de crédito." };
   if (!ssnItn) return { error: "El SSN/ITN es obligatorio." };
+  if (!instalacionMismaDireccion && (!direccionInstalacion || !ciudadInstalacion || !estadoInstalacion || !codigoPostalInstalacion)) {
+    return { error: "Si la dirección de instalación es distinta, completa dirección, ciudad, estado y código postal de instalación." };
+  }
 
   const supabase = await createClient();
 
   const { data: cliente, error } = await supabase
     .from("cliente")
     .insert({
-      nombre,
+      // nombre queda como el nombre completo — es lo que usa el resto de la
+      // app (tablas, contratos, notificaciones) para mostrar al cliente.
+      nombre: [nombrePila, nombreMedio, apellido].filter(Boolean).join(" "),
+      nombre_pila: nombrePila,
+      nombre_medio: nombreMedio,
+      apellido,
       direccion,
+      ciudad,
+      estado,
+      codigo_postal: codigoPostal,
+      licencia_numero: licenciaNumero,
+      licencia_estado: licenciaEstado,
+      fecha_nacimiento: fechaNacimiento,
       telefono,
       correo,
       ssn_itn_cifrado: encryptSsn(ssnItn),
+      instalacion_misma_direccion: instalacionMismaDireccion,
+      direccion_instalacion: instalacionMismaDireccion ? null : direccionInstalacion,
+      ciudad_instalacion: instalacionMismaDireccion ? null : ciudadInstalacion,
+      estado_instalacion: instalacionMismaDireccion ? null : estadoInstalacion,
+      codigo_postal_instalacion: instalacionMismaDireccion ? null : codigoPostalInstalacion,
       registrado_por: usuario.id,
-      // Admin ya validó a este cliente al cargarlo a mano — a diferencia
-      // del auto-registro público, no necesita el paso de confirmación.
+      // Quien lo registra (admin o asesor) ya lo validó al cargarlo a mano,
+      // no necesita el paso de confirmación aparte.
       verificado: true,
       verificado_por: usuario.id,
       verificado_en: new Date().toISOString(),
@@ -59,7 +105,7 @@ export async function crearCliente(_prevState: { error: string } | undefined, fo
 }
 
 export async function revelarSsn(clienteId: string) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado.", ssn: null };
 
   const supabase = await createClient();
@@ -85,7 +131,7 @@ export async function crearSolicitudCredito(
   _prevState: { error: string } | undefined,
   formData: FormData
 ) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
   const montoSolicitado = Number(formData.get("monto_solicitado"));
@@ -104,7 +150,7 @@ export async function crearSolicitudCredito(
 }
 
 export async function eliminarSolicitudCredito(clienteId: string, solicitudId: string) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
   const supabase = await createClient();
@@ -120,7 +166,7 @@ export async function eliminarSolicitudCredito(clienteId: string, solicitudId: s
 }
 
 export async function solicitarConsultaScore(clienteId: string) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
   const supabase = await createClient();
@@ -244,7 +290,7 @@ export async function confirmarCliente(clienteId: string) {
 }
 
 export async function invitarClientePortal(clienteId: string) {
-  const usuario = await requireAdmin();
+  const usuario = await requireStaff();
   if (!usuario) return { error: "No autorizado." };
 
   const supabase = await createClient();

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const CUOTAS = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
+const CUOTAS = [12, 18, 24, 36, 48, 60, 72, 84];
 
 export function ContratoForm({
   clienteId,
@@ -26,21 +26,24 @@ export function ContratoForm({
 }) {
   const [state, action, pending] = useActionState(crearContrato.bind(null, { clienteId, solicitudId }), undefined);
   const [numeroCuotas, setNumeroCuotas] = useState(cuotasSugeridas && CUOTAS.includes(Number(cuotasSugeridas)) ? cuotasSugeridas : "12");
-  const [tasaMensual, setTasaMensual] = useState(tasaSugerida ?? "");
+  const [tasaAnual, setTasaAnual] = useState(tasaSugerida ?? "");
   const [tilaAceptado, setTilaAceptado] = useState(false);
 
   const downpayment = Math.round(total * 0.5 * 100) / 100;
   const financiado = Math.round((total - downpayment) * 100) / 100;
 
+  // tasa_anual es lo que carga admin/asesor (y lo que dispara el tope de
+  // 9.99% de Paolo) — generarCronograma necesita la tasa periódica mensual,
+  // así que se divide entre 12 solo acá, para el cálculo.
   const disclosure = useMemo(() => {
-    const tasa = Number(tasaMensual);
+    const tasa = Number(tasaAnual);
     const cuotas = Number(numeroCuotas);
     if (!tasa || tasa <= 0 || !cuotas) return null;
-    const cronograma = generarCronograma(financiado, tasa, cuotas, new Date());
+    const cronograma = generarCronograma(financiado, tasa / 12, cuotas, new Date());
     const totalCuotas = cronograma.reduce((suma, c) => suma + c.monto, 0);
     const cargoFinanciero = Math.round((totalCuotas - financiado) * 100) / 100;
-    return { cuotaMensual: cronograma[0]?.monto ?? 0, totalCuotas, cargoFinanciero, tasaAnualReferencial: Math.round(tasa * 12 * 100) / 100 };
-  }, [tasaMensual, numeroCuotas, financiado]);
+    return { cuotaMensual: cronograma[0]?.monto ?? 0, totalCuotas, cargoFinanciero, tasaAnualReferencial: tasa };
+  }, [tasaAnual, numeroCuotas, financiado]);
 
   return (
     <Card>
@@ -73,14 +76,14 @@ export function ContratoForm({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="tasa_mensual">Tasa mensual (%)</Label>
+              <Label htmlFor="tasa_anual">Tasa anual (%)</Label>
               <Input
-                id="tasa_mensual"
-                name="tasa_mensual"
+                id="tasa_anual"
+                name="tasa_anual"
                 type="number"
                 step="0.01"
-                value={tasaMensual}
-                onChange={(e) => setTasaMensual(e.target.value)}
+                value={tasaAnual}
+                onChange={(e) => setTasaAnual(e.target.value)}
                 required
               />
             </div>
@@ -97,12 +100,12 @@ export function ContratoForm({
                 <p>Total a pagar en cuotas: ${disclosure.totalCuotas.toFixed(2)}</p>
                 <p>Cuota mensual: ${disclosure.cuotaMensual.toFixed(2)} × {numeroCuotas} meses</p>
                 <p className="text-muted-foreground">
-                  Tasa anual referencial: {disclosure.tasaAnualReferencial}% — el cálculo formal de APR bajo
-                  Regulation Z debe confirmarlo un abogado/contador antes de producción.
+                  Tasa anual (nominal): {disclosure.tasaAnualReferencial}% — el cálculo formal de APR bajo
+                  Regulation Z (método actuarial) debe confirmarlo un abogado/contador antes de producción.
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Completa la tasa mensual para ver el disclosure.</p>
+              <p className="text-sm text-muted-foreground">Completa la tasa anual para ver el disclosure.</p>
             )}
             <label className="flex items-start gap-2 pt-1 text-sm">
               <input
@@ -113,8 +116,12 @@ export function ContratoForm({
                 className="mt-1"
                 disabled={!disclosure}
               />
-              El cliente recibió y revisó esta información antes de firmar.
+              Confirmo que revisé esta información antes de crear el contrato.
             </label>
+            <p className="text-xs text-muted-foreground">
+              El cliente todavía tiene que aceptar estos mismos términos desde su portal antes de poder autorizar su
+              método de cobro — esto no reemplaza esa aceptación.
+            </p>
           </div>
 
           {state?.error && <p className="text-sm text-destructive">{state.error}</p>}

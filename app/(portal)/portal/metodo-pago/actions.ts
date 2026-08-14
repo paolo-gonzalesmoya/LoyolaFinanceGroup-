@@ -46,6 +46,20 @@ export async function confirmarMandatoCobroCliente(stripePaymentMethodId: string
 
   const supabase = await createClient();
 
+  // Mismo chequeo que hace la página, repetido acá porque esta Server
+  // Action es la frontera real — la redirección de la página es solo UX.
+  const { data: solicitud } = await supabase.from("solicitud_credito").select("id").eq("cliente_id", cliente.id).maybeSingle();
+  if (solicitud) {
+    const { data: contrato } = await supabase
+      .from("contrato")
+      .select("cliente_acepto_en")
+      .eq("solicitud_id", solicitud.id)
+      .maybeSingle();
+    if (contrato && !contrato.cliente_acepto_en) {
+      return { error: "Primero tienes que aceptar los términos de tu contrato." };
+    }
+  }
+
   // Un solo mandato activo por cliente — mismo patrón que el flujo de
   // staff. Las policies "cliente_gestion*" de mandato_cobro exigen que
   // cliente_id sea el propio, así que esto no necesita el cliente admin.

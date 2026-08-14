@@ -8,8 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export default async function ClientesPage() {
   const usuario = await getStaffUser();
-  if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) redirect("/dashboard");
 
+  // Sin filtro explícito por registrado_por a propósito: la RLS scoped al
+  // asesor (vendedor_select en cliente) ya limita las filas que puede leer
+  // — admin sigue viendo todo por su propia policy admin_select.
   const supabase = await createClient();
   const { data: clientes } = await supabase
     .from("cliente")

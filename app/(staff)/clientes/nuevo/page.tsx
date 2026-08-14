@@ -5,7 +5,7 @@ import { NuevoClienteForm } from "./form";
 
 export default async function NuevoClientePage() {
   const usuario = await getStaffUser();
-  if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) redirect("/dashboard");
 
   return (
     <div className="max-w-lg">

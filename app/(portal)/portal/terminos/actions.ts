@@ -3,7 +3,7 @@
 import { redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getClienteUser } from "@/lib/auth/session";
-import { TC_VERSION } from "@/app/(auth)/registro/terminos";
+import { TC_VERSION } from "@/lib/legal/terminos";
 
 export async function aceptarTerminos(_prevState: { error: string } | undefined, formData: FormData) {
   const cliente = await getClienteUser();

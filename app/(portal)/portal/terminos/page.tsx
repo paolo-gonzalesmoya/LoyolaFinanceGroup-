@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getClienteUser } from "@/lib/auth/session";
-import { TC_TEXTO } from "@/app/(auth)/registro/terminos";
+import { TC_TEXTO } from "@/lib/legal/terminos";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { AceptarTerminosForm } from "./form";
 

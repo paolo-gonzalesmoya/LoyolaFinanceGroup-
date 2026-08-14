@@ -26,9 +26,13 @@ export async function crearUsuarioStaff(
 
   const nombre = String(formData.get("nombre") ?? "").trim();
   const correo = String(formData.get("correo") ?? "").trim().toLowerCase();
+  const rol = String(formData.get("rol") ?? "vendedor");
 
   if (!nombre || !correo) {
     return { error: "Completa nombre y correo.", password: null };
+  }
+  if (rol !== "admin" && rol !== "vendedor") {
+    return { error: "Rol inválido.", password: null };
   }
 
   const admin = createAdminClient();
@@ -48,7 +52,7 @@ export async function crearUsuarioStaff(
   const { error: dbError } = await supabase.from("usuario").insert({
     nombre,
     correo,
-    rol: "admin",
+    rol,
     auth_user_id: authUser.user.id,
   });
 

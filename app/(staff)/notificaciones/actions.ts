@@ -6,7 +6,7 @@ import { getStaffUser } from "@/lib/auth/session";
 
 export async function marcarNotificacionLeida(notificacionId: string) {
   const usuario = await getStaffUser();
-  if (!usuario || usuario.rol !== "admin") return { error: "No autorizado." };
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) return { error: "No autorizado." };
 
   const supabase = await createClient();
   const { error } = await supabase.from("notificacion").update({ leida: true }).eq("id", notificacionId);

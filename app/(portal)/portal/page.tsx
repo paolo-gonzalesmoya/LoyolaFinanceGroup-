@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { SolicitudClienteForm } from "./solicitud-form";
 import { DownpaymentCheckout } from "./downpayment-checkout";
 
 const ESTADO_CUOTA_VARIANT = {
@@ -29,9 +28,8 @@ export default async function PortalPage() {
     .eq("cliente_id", cliente.id)
     .maybeSingle();
 
-  // Sin solicitud todavía: si ya está confirmado, puede enviar su
-  // solicitud real (SSN + monto). La simulación la hace admin, no el
-  // cliente.
+  // Sin solicitud todavía: tu asesor la arma por ti — no hay nada que el
+  // cliente tenga que enviar acá.
   if (!solicitud) {
     return (
       <div className="max-w-2xl space-y-4">
@@ -41,14 +39,9 @@ export default async function PortalPage() {
             <CardTitle className="text-base">Tu solicitud</CardTitle>
           </CardHeader>
           <CardContent>
-            {cliente.verificado ? (
-              <SolicitudClienteForm />
-            ) : (
-              <p className="text-sm text-muted-foreground">
-                Todavía estamos confirmando tu identidad. Apenas terminemos, vas a poder enviar tu solicitud real
-                acá mismo.
-              </p>
-            )}
+            <p className="text-sm text-muted-foreground">
+              Tu asesor está armando tu solicitud de financiamiento. Te avisamos apenas haya novedades.
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -98,6 +91,25 @@ export default async function PortalPage() {
     );
   }
 
+  if (!contrato.cliente_acepto_en) {
+    return (
+      <div className="max-w-2xl space-y-4">
+        <h1 className="text-xl font-semibold">Hola, {cliente.nombre}</h1>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Tu contrato está listo</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <p className="text-muted-foreground">
+              Antes de autorizar tu método de cobro, tienes que revisar y aceptar los términos de tu financiamiento.
+            </p>
+            <Button render={<Link href="/portal/contrato" />}>Revisar y aceptar mi contrato</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const { data: mandato } = await supabase
     .from("mandato_cobro")
     .select("id")
@@ -115,7 +127,7 @@ export default async function PortalPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              {contrato.numero_cuotas} cuotas · {contrato.tasa_mensual}% mensual · Pago inicial: $
+              {contrato.numero_cuotas} cuotas · {contrato.tasa_anual}% anual · Pago inicial: $
               {Number(contrato.downpayment_monto).toFixed(2)}
             </p>
           </CardContent>
@@ -177,7 +189,7 @@ export default async function PortalPage() {
         <CardContent className="space-y-2 text-sm">
           <p>
             Monto financiado: ${Number(prestamo.monto_financiado).toFixed(2)} · {contrato.numero_cuotas} cuotas ·{" "}
-            {contrato.tasa_mensual}% mensual
+            {contrato.tasa_anual}% anual
           </p>
           <p className="flex items-center gap-2">
             <span className="text-muted-foreground">Estado:</span>

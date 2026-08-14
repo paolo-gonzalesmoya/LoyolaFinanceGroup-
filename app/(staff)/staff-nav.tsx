@@ -8,15 +8,15 @@ const LINKS = [
   { href: "/dashboard", label: "Dashboard", icono: LayoutDashboard },
   { href: "/clientes", label: "Clientes", icono: Users },
   { href: "/notificaciones", label: "Notificaciones", icono: Bell },
-  { href: "/configuracion", label: "Configuración", icono: Settings },
+  { href: "/configuracion", label: "Configuración", icono: Settings, soloAdmin: true },
 ];
 
-export function StaffNav() {
+export function StaffNav({ rol }: { rol: string }) {
   const pathname = usePathname();
 
   return (
     <nav className="flex-1 space-y-1 p-3">
-      {LINKS.map((link) => {
+      {LINKS.filter((link) => !link.soloAdmin || rol === "admin").map((link) => {
         const activo = pathname === link.href || pathname.startsWith(`${link.href}/`);
         return (
           <Link

@@ -12,10 +12,12 @@ function csvEscape(value: string) {
 
 export async function GET() {
   const usuario = await getStaffUser();
-  if (!usuario || usuario.rol !== "admin") {
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) {
     return NextResponse.json({ error: "No autorizado." }, { status: 401 });
   }
 
+  // Sin filtro explícito: la RLS scoped al asesor (vendedor_select en
+  // cliente) limita el export a sus propios clientes.
   const supabase = await createClient();
   const { data: clientes, error } = await supabase
     .from("cliente")

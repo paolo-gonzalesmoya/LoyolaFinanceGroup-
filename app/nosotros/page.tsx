@@ -14,7 +14,7 @@ const COMPROMISOS = [
   {
     icono: UserCheck,
     titulo: "Identidad confirmada",
-    descripcion: "Un administrador revisa a cada cliente a mano antes de que su solicitud avance de verdad.",
+    descripcion: "Tu asesor te registra en persona, así que tu identidad queda confirmada desde el primer momento.",
   },
   {
     icono: ShieldCheck,
@@ -36,7 +36,7 @@ export default function NosotrosPage() {
               Nosotros
             </Link>
             <Link href="/login" className="text-white/70 transition-colors hover:text-white">
-              Ingreso Administrativo
+              Acceso Staff
             </Link>
             <Button size="sm" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login" />}>
               Portal del cliente
@@ -77,9 +77,9 @@ export default function NosotrosPage() {
             <div>
               <h2 className="font-[family-name:var(--font-display)] text-2xl text-foreground sm:text-3xl">Cómo trabajamos</h2>
               <p className="mt-4 text-sm text-muted-foreground sm:text-base">
-                Creamos tu cuenta, confirmamos tu identidad, evaluamos tu solicitud y te mostramos las condiciones
-                exactas del financiamiento antes de que firmes nada. Desde tu portal ves siempre el estado real de
-                tu solicitud, tu cronograma de pagos y cada cuota — sin sorpresas en el camino.
+                Tu asesor arma tu solicitud contigo, evaluamos tu crédito y te mostramos las condiciones exactas del
+                financiamiento antes de que firmes nada. Desde tu portal ves siempre el estado real de tu solicitud,
+                tu cronograma de pagos y cada cuota — sin sorpresas en el camino.
               </p>
             </div>
           </div>
@@ -107,8 +107,12 @@ export default function NosotrosPage() {
             ¿Listo para tu próximo proyecto?
           </h2>
           <div className="mt-6">
-            <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/registro" />}>
-              Crea tu cuenta
+            <Button
+              size="lg"
+              className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]"
+              render={<a href="https://www.loyolaconstructions.com/" target="_blank" rel="noopener noreferrer" />}
+            >
+              Habla con tu contratista
             </Button>
           </div>
         </div>

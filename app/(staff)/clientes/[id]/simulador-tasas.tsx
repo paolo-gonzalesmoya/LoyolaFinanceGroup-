@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const PLAZOS = [12, 18, 24, 36, 48, 60, 72, 84, 96, 108, 120];
+const PLAZOS = [12, 18, 24, 36, 48, 60, 72, 84];
 
 type Nivel = { id: string; nombre_nivel: string; score_min: number; score_max: number; tasa_interes: number };
 
@@ -58,10 +58,12 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
     router.replace(`?${params.toString()}`, { scroll: false });
   }
 
+  // tasaNum es ANUAL (mismo criterio que niveles_score.tasa_interes y
+  // contrato.tasa_anual) — se divide entre 12 recién acá, para el cálculo.
   const resultados = useMemo(() => {
     if (tasaNum <= 0 || financiado <= 0) return [];
     return plazosElegidos.map((p) => {
-      const cronograma = generarCronograma(financiado, tasaNum, p, new Date());
+      const cronograma = generarCronograma(financiado, tasaNum / 12, p, new Date());
       const cuotaMensual = cronograma[0]?.monto ?? 0;
       const totalCuotas = Math.round(cronograma.reduce((s, c) => s + c.monto, 0) * 100) / 100;
       return { plazo: p, cuotaMensual, totalCuotas };
@@ -101,7 +103,7 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
         </div>
 
         <div className="max-w-xs space-y-1.5">
-          <Label htmlFor="sim_tasa">Tasa mensual a probar (%)</Label>
+          <Label htmlFor="sim_tasa">Tasa anual a probar (%)</Label>
           <Input id="sim_tasa" type="number" min="0" step="0.01" value={tasa} onChange={(e) => setTasa(e.target.value)} />
           <p className="text-xs text-muted-foreground">
             {nivelPorScore ? "Sugerida según el score consultado — puedes editarla." : "Sin score todavía — ingrésala a mano."}
@@ -159,7 +161,7 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
                         estaSeleccionada ? "border-white/15 text-white/70" : "border-border text-muted-foreground"
                       }`}
                     >
-                      <p>Tasa: {tasaNum}% mensual</p>
+                      <p>Tasa: {tasaNum}% anual</p>
                       <p>Total en cuotas: ${r.totalCuotas.toFixed(2)}</p>
                     </div>
                   </button>

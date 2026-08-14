@@ -1,8 +1,10 @@
 import { notFound, redirect } from "next/navigation";
+import { ChevronDownIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getStaffUser } from "@/lib/auth/session";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { MandatoCobro } from "./mandato-cobro";
 import { ContratoForm } from "./contrato-form";
@@ -19,7 +21,7 @@ export default async function ContratoPage({ params, searchParams }: PageProps<"
   const tasaSugerida = firstParam(resolvedSearchParams.tasa);
   const cuotasSugeridas = firstParam(resolvedSearchParams.cuotas);
   const usuario = await getStaffUser();
-  if (!usuario || usuario.rol !== "admin") redirect("/dashboard");
+  if (!usuario || (usuario.rol !== "admin" && usuario.rol !== "vendedor")) redirect("/dashboard");
 
   const supabase = await createClient();
   const { data: cliente } = await supabase.from("cliente").select("*").eq("id", id).single();
@@ -101,16 +103,7 @@ export default async function ContratoPage({ params, searchParams }: PageProps<"
     <div className="max-w-2xl space-y-4">
       <h1 className="text-xl font-semibold">Contrato — {cliente.nombre}</h1>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Método de cobro</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {mandato ? <Badge variant="outline">Autorizado</Badge> : <MandatoCobro clienteId={cliente.id} />}
-        </CardContent>
-      </Card>
-
-      {mandato && !contrato && (
+      {!contrato && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Datos del contrato</CardTitle>
@@ -134,14 +127,81 @@ export default async function ContratoPage({ params, searchParams }: PageProps<"
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              {contrato.numero_cuotas} cuotas · {contrato.tasa_mensual}% mensual
+              {contrato.numero_cuotas} cuotas · {contrato.tasa_anual}% anual
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="text-muted-foreground">Cliente aceptó el contrato:</span>
+              <Badge variant={contrato.cliente_acepto_en ? "outline" : "secondary"}>
+                {contrato.cliente_acepto_en ? "Sí" : "Pendiente"}
+              </Badge>
             </p>
             <p>
               Downpayment: ${Number(contrato.downpayment_monto).toFixed(2)} —{" "}
               <Badge variant="outline">{contrato.downpayment_pagado ? "cobrado" : "pendiente"}</Badge>
             </p>
-            {!contrato.downpayment_pagado && (
-              <VerificarDownpaymentButton input={{ clienteId: cliente.id, contratoId: contrato.id }} />
+          </CardContent>
+        </Card>
+      )}
+
+      {contrato && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Método de cobro</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {mandato ? (
+              <Badge variant="outline">Autorizado</Badge>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Pendiente — lo autoriza el cliente desde su portal, después de aceptar el contrato.
+              </p>
+            )}
+            {!mandato && usuario.rol === "admin" && (
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                  Respaldo: autorizar método de cobro manualmente
+                  <ChevronDownIcon className="size-3.5 transition-transform duration-200 data-[panel-open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 space-y-2 rounded-md border border-dashed p-3">
+                    <p className="text-xs text-muted-foreground">
+                      Excepcional — solo si el cliente no puede hacerlo desde su propio portal.
+                    </p>
+                    <MandatoCobro clienteId={cliente.id} />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {contrato && !contrato.downpayment_pagado && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Pago inicial (downpayment)</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              {mandato
+                ? "Pendiente — lo paga el cliente desde su portal."
+                : "El cliente todavía tiene que autorizar un método de cobro antes de poder pagarlo."}
+            </p>
+            {mandato && usuario.rol === "admin" && (
+              <Collapsible>
+                <CollapsibleTrigger className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground">
+                  Respaldo: cobrar el downpayment manualmente
+                  <ChevronDownIcon className="size-3.5 transition-transform duration-200 data-[panel-open]:rotate-180" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <div className="mt-2 space-y-2 rounded-md border border-dashed p-3">
+                    <p className="text-xs text-muted-foreground">
+                      Excepcional — solo si el cliente no puede hacerlo desde su propio portal.
+                    </p>
+                    <VerificarDownpaymentButton input={{ clienteId: cliente.id, contratoId: contrato.id }} />
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             )}
           </CardContent>
         </Card>

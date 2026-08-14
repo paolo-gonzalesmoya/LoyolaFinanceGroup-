@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Logo } from "@/components/logo";
 import { LoginForm } from "../login-form";
@@ -14,12 +13,6 @@ export default function IngresarPage() {
         </CardHeader>
         <CardContent>
           <LoginForm />
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            ¿No tienes cuenta?{" "}
-            <Link href="/registro" className="text-foreground underline-offset-4 hover:underline">
-              Regístrate
-            </Link>
-          </p>
         </CardContent>
       </Card>
     </main>
