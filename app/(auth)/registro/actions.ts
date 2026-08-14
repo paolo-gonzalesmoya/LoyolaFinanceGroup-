@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptSsn } from "@/lib/crypto/ssn";
 
-type RegistroState = { error: string | null; correoEnviado?: boolean };
+type RegistroState = { error: string | null };
 
 export async function registrarClientePublico(_prevState: RegistroState | undefined, formData: FormData): Promise<RegistroState> {
   const nombre = String(formData.get("nombre") ?? "").trim();
@@ -21,27 +21,30 @@ export async function registrarClientePublico(_prevState: RegistroState | undefi
   if (password.length < 8) return { error: "La contraseña debe tener al menos 8 caracteres." };
   if (password !== confirmarPassword) return { error: "Las contraseñas no coinciden." };
 
-  const supabase = await createClient();
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+  const admin = createAdminClient();
 
-  // signUp (no admin.createUser con email_confirm:true): así Supabase manda
-  // el correo de confirmación de verdad y no entrega sesión hasta que el
-  // cliente lo confirme. auth/callback ya sabe intercambiar ese link por
-  // una sesión real (mismo Route Handler que usa la invitación al portal).
-  const { data: signUpData, error: authError } = await supabase.auth.signUp({
+  // Confirmación de correo desactivada A PROPÓSITO por ahora (pedido
+  // explícito de Paolo, 2026-08-14): sin un dominio propio verificado en
+  // Resend, Supabase no puede mandar el correo de confirmación a nadie que
+  // no sea la cuenta de Resend de Paolo — supabase.auth.signUp() ni
+  // siquiera crea la cuenta cuando ese envío falla (lo bloquea por
+  // completo). Mientras tanto se crea la cuenta directo con
+  // email_confirm:true, como antes de que existiera el paso de
+  // confirmación. Para reactivarlo cuando haya dominio verificado: volver
+  // a supabase.auth.signUp() con emailRedirectTo (ver git log de este
+  // archivo — commit "Correo real: confirmación de registro...").
+  const { data: authUser, error: authError } = await admin.auth.admin.createUser({
     email: correo,
     password,
-    options: { emailRedirectTo: `${siteUrl}/auth/callback?next=/portal` },
+    email_confirm: true,
   });
 
-  if (authError || !signUpData.user) {
+  if (authError || !authUser?.user) {
     const yaExiste = authError?.message?.toLowerCase().includes("already registered");
     return {
       error: yaExiste ? "Ya existe una cuenta con este correo." : `No se pudo crear tu cuenta: ${authError?.message ?? "error desconocido"}`,
     };
   }
-
-  const admin = createAdminClient();
 
   // verificado queda en false (default de la columna): un cliente que se
   // registra puede cargar su SSN/ITN de una (admin ya puede consultar su
@@ -55,21 +58,18 @@ export async function registrarClientePublico(_prevState: RegistroState | undefi
     telefono,
     direccion,
     ssn_itn_cifrado: encryptSsn(ssnItn),
-    auth_user_id: signUpData.user.id,
+    auth_user_id: authUser.user.id,
     registrado_por: null,
   });
 
   if (dbError) {
-    await admin.auth.admin.deleteUser(signUpData.user.id);
+    await admin.auth.admin.deleteUser(authUser.user.id);
     return { error: `No se pudo crear tu cuenta: ${dbError.message}` };
   }
 
-  // Si el proyecto tiene desactivada la confirmación de correo, signUp ya
-  // devuelve una sesión activa — en ese caso no hay nada que confirmar,
-  // entra directo a aceptar los Términos. Si no, se queda a esperar el
-  // clic en el correo (ese link ya manda a /portal, que a su vez redirige
-  // a /portal/terminos si todavía no los aceptó).
-  if (signUpData.session) redirect("/portal/terminos");
+  const supabase = await createClient();
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email: correo, password });
+  if (signInError) redirect("/portal-login/ingresar");
 
-  return { error: null, correoEnviado: true };
+  redirect("/portal/terminos");
 }

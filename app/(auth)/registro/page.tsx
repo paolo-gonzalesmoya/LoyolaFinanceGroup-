@@ -1,14 +1,14 @@
 import Link from "next/link";
-import { Mail, UserCheck, Calculator } from "lucide-react";
+import { FileCheck, UserCheck, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HeroPatternStrips } from "@/components/hero-pattern-strips";
 import { Logo } from "@/components/logo";
 
 const PASOS = [
   {
-    icono: Mail,
-    titulo: "Confirma tu correo",
-    descripcion: "Te mandamos un link de confirmación apenas te registras — ábrelo para poder entrar al portal.",
+    icono: FileCheck,
+    titulo: "Acepta los Términos y Condiciones",
+    descripcion: "Es el último paso antes de entrar a tu portal — lo vas a ver apenas crees tu cuenta.",
   },
   {
     icono: UserCheck,
@@ -38,8 +38,8 @@ export default function RegistroPage() {
                 Crea tu cuenta
               </h1>
               <p className="mt-6 max-w-lg text-base text-white/70 sm:text-lg">
-                Regístrate y confirma tu correo para entrar al portal. Tu solicitud avanza de verdad una vez que
-                confirmemos tu identidad.
+                Crea tu cuenta y entra directo a tu portal. Tu solicitud avanza de verdad una vez que confirmemos
+                tu identidad.
               </p>
             </div>
             <Button
