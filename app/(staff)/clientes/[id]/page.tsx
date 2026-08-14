@@ -158,21 +158,17 @@ export default async function ClienteDetallePage({ params, searchParams }: PageP
         </Card>
       )}
 
-      {solicitud?.decision === "aprobado" && (
-        <Button
-          render={
-            <Link
-              href={
-                tasaSeleccionada && cuotasSeleccionadas
-                  ? `/clientes/${cliente.id}/contrato?tasa=${tasaSeleccionada}&cuotas=${cuotasSeleccionadas}`
-                  : `/clientes/${cliente.id}/contrato`
-              }
-            />
-          }
-        >
-          Ir a contrato
-        </Button>
-      )}
+      {solicitud?.decision === "aprobado" &&
+        (tasaSeleccionada && cuotasSeleccionadas ? (
+          <Button render={<Link href={`/clientes/${cliente.id}/contrato?tasa=${tasaSeleccionada}&cuotas=${cuotasSeleccionadas}`} />}>
+            Ir a contrato
+          </Button>
+        ) : (
+          <div className="space-y-1.5">
+            <Button disabled>Ir a contrato</Button>
+            <p className="text-xs text-muted-foreground">Elige un plazo en el simulador de arriba para poder continuar.</p>
+          </div>
+        ))}
     </div>
   );
 }

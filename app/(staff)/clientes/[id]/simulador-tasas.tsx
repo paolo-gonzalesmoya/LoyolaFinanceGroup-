@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { generarCronograma } from "@/lib/prestamos/amortizacion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
@@ -16,12 +15,12 @@ type Nivel = { id: string; nombre_nivel: string; score_min: number; score_max: n
 // Simulador del lado de admin: a partir del score consultado en Experian,
 // sugiere la tasa según niveles_score, y muestra un cuadro por cada plazo
 // que admin marque — así decide qué tasa/plazo usar antes de armar el
-// contrato de verdad. El cliente no tiene acceso a esto. La opción que se
-// "usa" queda en la URL de esta misma página (?tasa=&cuotas=) para que el
-// botón "Ir a contrato" (en page.tsx, server) la lleve prellenada al
-// formulario del contrato.
+// contrato de verdad. El cliente no tiene acceso a esto. La tarjeta elegida
+// queda en la URL de esta misma página (?tasa=&cuotas=) — page.tsx (server)
+// exige que existan esos dos valores para habilitar "Ir a contrato".
 export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoSolicitado: number; niveles: Nivel[]; scoreReal: number | null }) {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const nivelPorScore = scoreReal != null ? niveles.find((n) => scoreReal >= n.score_min && scoreReal <= n.score_max) : undefined;
 
@@ -36,11 +35,22 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
   const downpayment = Math.round(montoSolicitado * 0.5 * 100) / 100;
   const financiado = Math.round((montoSolicitado - downpayment) * 100) / 100;
 
-  function togglePlazo(p: number) {
-    setPlazosElegidos((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p].sort((a, b) => a - b)));
+  function limpiarSeleccionEnUrl() {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("tasa");
+    params.delete("cuotas");
+    router.replace(params.size ? `${pathname}?${params.toString()}` : pathname, { scroll: false });
   }
 
-  function usarSimulacion(plazo: number) {
+  function togglePlazo(p: number) {
+    setPlazosElegidos((prev) => (prev.includes(p) ? prev.filter((x) => x !== p) : [...prev, p].sort((a, b) => a - b)));
+    if (seleccionado === p) {
+      setSeleccionado(null);
+      limpiarSeleccionEnUrl();
+    }
+  }
+
+  function seleccionarPlazo(plazo: number) {
     setSeleccionado(plazo);
     const params = new URLSearchParams(searchParams.toString());
     params.set("tasa", String(tasaNum));
@@ -63,10 +73,10 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
       <CardHeader>
         <CardTitle className="text-base">Simulador de tasas y cuotas</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-5">
         {scoreReal != null && (
           <p className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Score consultado:</span> <b>{scoreReal}</b>
+            <span className="text-muted-foreground">Score consultado:</span> <b className="tabular-nums">{scoreReal}</b>
             {nivelPorScore ? (
               <Badge variant="outline">Nivel {nivelPorScore.nombre_nivel}</Badge>
             ) : (
@@ -75,10 +85,20 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
           </p>
         )}
 
-        <p className="text-sm text-muted-foreground">
-          Monto solicitado: <b className="text-foreground">${montoSolicitado.toFixed(2)}</b> · Downpayment (50%): $
-          {downpayment.toFixed(2)} · A financiar: <b className="text-foreground">${financiado.toFixed(2)}</b>
-        </p>
+        <div className="grid grid-cols-3 gap-3 rounded-lg border bg-muted/30 px-4 py-3 text-sm tabular-nums">
+          <div>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">Solicitado</p>
+            <p className="font-medium text-foreground">${montoSolicitado.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">Downpayment (50%)</p>
+            <p className="font-medium text-foreground">${downpayment.toFixed(2)}</p>
+          </div>
+          <div>
+            <p className="text-xs tracking-wide text-muted-foreground uppercase">A financiar</p>
+            <p className="font-medium text-[#c68a3d]">${financiado.toFixed(2)}</p>
+          </div>
+        </div>
 
         <div className="max-w-xs space-y-1.5">
           <Label htmlFor="sim_tasa">Tasa mensual a probar (%)</Label>
@@ -105,35 +125,47 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
         )}
 
         {resultados.length > 0 && (
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {resultados.map((r) => {
-              const estaSeleccionada = seleccionado === r.plazo && Number(tasaUrl) === tasaNum;
-              return (
-                <div
-                  key={r.plazo}
-                  className={`space-y-2 rounded-md border p-3 text-sm ${estaSeleccionada ? "border-primary bg-primary/5" : "bg-muted/40"}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium">{r.plazo} cuotas</p>
-                    {estaSeleccionada && <Badge>Seleccionada</Badge>}
-                  </div>
-                  <p className="text-muted-foreground">Monto financiado: ${financiado.toFixed(2)}</p>
-                  <p className="text-muted-foreground">Tasa: {tasaNum}% mensual</p>
-                  <p>
-                    Cuota mensual: <b>${r.cuotaMensual.toFixed(2)}</b>
-                  </p>
-                  <p className="text-muted-foreground">Total en cuotas: ${r.totalCuotas.toFixed(2)}</p>
-                  <Button
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground">
+              Haz clic en un plazo para elegirlo — hace falta elegir uno para poder avanzar al contrato.
+            </p>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {resultados.map((r) => {
+                const estaSeleccionada = seleccionado === r.plazo && Number(tasaUrl) === tasaNum;
+                return (
+                  <button
+                    key={r.plazo}
                     type="button"
-                    size="sm"
-                    variant={estaSeleccionada ? "outline" : "default"}
-                    onClick={() => usarSimulacion(r.plazo)}
+                    onClick={() => seleccionarPlazo(r.plazo)}
+                    aria-pressed={estaSeleccionada}
+                    className={`rounded-lg border p-4 text-left transition-colors ${
+                      estaSeleccionada
+                        ? "border-[#101d33] bg-[#101d33]"
+                        : "border-border bg-card hover:border-[#101d33]/40 hover:bg-muted/40"
+                    }`}
                   >
-                    {estaSeleccionada ? "Usando esta simulación" : "Usar esta simulación"}
-                  </Button>
-                </div>
-              );
-            })}
+                    <div className="flex items-center justify-between gap-2">
+                      <p className={`text-xs font-medium tracking-wide uppercase ${estaSeleccionada ? "text-white/60" : "text-muted-foreground"}`}>
+                        {r.plazo} cuotas
+                      </p>
+                      {estaSeleccionada && <Badge className="bg-[#c68a3d] text-[#1a1206]">Seleccionado</Badge>}
+                    </div>
+                    <p className={`mt-2 text-2xl font-semibold tabular-nums ${estaSeleccionada ? "text-white" : "text-foreground"}`}>
+                      ${r.cuotaMensual.toFixed(2)}
+                      <span className={`ml-1 text-xs font-normal ${estaSeleccionada ? "text-white/60" : "text-muted-foreground"}`}>/mes</span>
+                    </p>
+                    <div
+                      className={`mt-3 space-y-1 border-t pt-2 text-xs tabular-nums ${
+                        estaSeleccionada ? "border-white/15 text-white/70" : "border-border text-muted-foreground"
+                      }`}
+                    >
+                      <p>Tasa: {tasaNum}% mensual</p>
+                      <p>Total en cuotas: ${r.totalCuotas.toFixed(2)}</p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
         {niveles.length === 0 && (
