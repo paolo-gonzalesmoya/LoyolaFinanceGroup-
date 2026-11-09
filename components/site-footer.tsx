@@ -35,7 +35,7 @@ export function SiteFooter() {
           <div>
             <p className="text-xs font-medium tracking-[0.15em] text-muted-foreground uppercase">Empresa hermana</p>
             <a
-              href="https://www.loyolaconstructions.com/"
+              href="https://constructions.loyola-finance-group.com/"
               target="_blank"
               rel="noopener noreferrer"
               className="mt-3 inline-block"

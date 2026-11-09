@@ -98,7 +98,7 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
           </div>
           <div>
             <p className="text-xs tracking-wide text-muted-foreground uppercase">A financiar</p>
-            <p className="font-medium text-[#c68a3d]">${financiado.toFixed(2)}</p>
+            <p className="font-medium text-[#D6AD58]">${financiado.toFixed(2)}</p>
           </div>
         </div>
 
@@ -142,15 +142,15 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
                     aria-pressed={estaSeleccionada}
                     className={`rounded-lg border p-4 text-left transition-colors ${
                       estaSeleccionada
-                        ? "border-[#101d33] bg-[#101d33]"
-                        : "border-border bg-card hover:border-[#101d33]/40 hover:bg-muted/40"
+                        ? "border-[#174EA6] bg-[#174EA6]"
+                        : "border-border bg-card hover:border-[#174EA6]/40 hover:bg-muted/40"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
                       <p className={`text-xs font-medium tracking-wide uppercase ${estaSeleccionada ? "text-white/60" : "text-muted-foreground"}`}>
                         {r.plazo} cuotas
                       </p>
-                      {estaSeleccionada && <Badge className="bg-[#c68a3d] text-[#1a1206]">Seleccionado</Badge>}
+                      {estaSeleccionada && <Badge className="bg-[#D6AD58] text-[#1a1206]">Seleccionado</Badge>}
                     </div>
                     <p className={`mt-2 text-2xl font-semibold tabular-nums ${estaSeleccionada ? "text-white" : "text-foreground"}`}>
                       ${r.cuotaMensual.toFixed(2)}

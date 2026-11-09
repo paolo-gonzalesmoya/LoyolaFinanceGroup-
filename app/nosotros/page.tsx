@@ -26,7 +26,7 @@ const COMPROMISOS = [
 export default function NosotrosPage() {
   return (
     <main>
-      <header className="border-b border-white/10 bg-[#101d33]">
+      <header className="border-b border-white/10 bg-[#174EA6]">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
           <Link href="/">
             <Logo onDark className="h-7 w-auto" />
@@ -38,18 +38,18 @@ export default function NosotrosPage() {
             <Link href="/login" className="text-white/70 transition-colors hover:text-white">
               Acceso Staff
             </Link>
-            <Button size="sm" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login" />}>
+            <Button size="sm" className="bg-[#D6AD58] text-[#1a1206] hover:bg-[#E2C07A]" render={<Link href="/portal-login" />}>
               Portal del cliente
             </Button>
           </nav>
         </div>
       </header>
 
-      <section className="relative overflow-hidden bg-[#101d33]">
+      <section className="relative overflow-hidden bg-[#174EA6]">
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-20 sm:py-28">
           <div className="max-w-2xl">
-            <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Nosotros</p>
+            <p className="text-xs font-medium tracking-[0.2em] text-[#D6AD58] uppercase">Nosotros</p>
             <h1 className="mt-4 font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
               Financiamiento directo, pensado para tu próximo proyecto en Texas.
             </h1>
@@ -92,7 +92,7 @@ export default function NosotrosPage() {
           <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
             {COMPROMISOS.map((item) => (
               <div key={item.titulo}>
-                <item.icono className="size-6 text-[#c68a3d]" strokeWidth={1.75} />
+                <item.icono className="size-6 text-[#D6AD58]" strokeWidth={1.75} />
                 <h3 className="mt-3 text-sm font-semibold text-foreground">{item.titulo}</h3>
                 <p className="mt-1.5 text-sm text-muted-foreground">{item.descripcion}</p>
               </div>
@@ -109,8 +109,8 @@ export default function NosotrosPage() {
           <div className="mt-6">
             <Button
               size="lg"
-              className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]"
-              render={<a href="https://www.loyolaconstructions.com/" target="_blank" rel="noopener noreferrer" />}
+              className="bg-[#D6AD58] text-[#1a1206] hover:bg-[#E2C07A]"
+              render={<a href="https://constructions.loyola-finance-group.com/" target="_blank" rel="noopener noreferrer" />}
             >
               Habla con tu contratista
             </Button>

@@ -17,7 +17,7 @@ export default async function StaffLayout({ children }: { children: React.ReactN
 
   return (
     <div className="flex min-h-svh">
-      <aside className="flex w-64 shrink-0 flex-col bg-[#101d33]">
+      <aside className="flex w-64 shrink-0 flex-col bg-[#174EA6]">
         <div className="border-b border-white/10 p-5">
           <Link href="/dashboard">
             <Logo onDark className="h-8 w-auto" />

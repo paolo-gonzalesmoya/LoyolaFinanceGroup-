@@ -25,7 +25,7 @@ const BENEFICIOS = [
 export default function PortalLoginPage() {
   return (
     <main>
-      <section className="relative overflow-hidden bg-[#101d33]">
+      <section className="relative overflow-hidden bg-[#174EA6]">
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
           <Link href="/" className="mb-8 inline-block">
@@ -33,7 +33,7 @@ export default function PortalLoginPage() {
           </Link>
           <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
             <div className="max-w-2xl">
-              <p className="text-xs font-medium tracking-[0.2em] text-[#c68a3d] uppercase">Portal del cliente</p>
+              <p className="text-xs font-medium tracking-[0.2em] text-[#D6AD58] uppercase">Portal del cliente</p>
               <h1 className="mt-4 max-w-2xl font-[family-name:var(--font-display)] text-4xl leading-tight text-white text-balance sm:text-5xl">
                 Todo tu financiamiento, en un solo lugar
               </h1>
@@ -43,7 +43,7 @@ export default function PortalLoginPage() {
               </p>
             </div>
             <div className="flex shrink-0 gap-3">
-              <Button size="lg" className="bg-[#c68a3d] text-[#1a1206] hover:bg-[#d69a4d]" render={<Link href="/portal-login/ingresar" />}>
+              <Button size="lg" className="bg-[#D6AD58] text-[#1a1206] hover:bg-[#E2C07A]" render={<Link href="/portal-login/ingresar" />}>
                 Ingresar
               </Button>
             </div>
@@ -57,7 +57,7 @@ export default function PortalLoginPage() {
           <div className="mt-10 grid gap-10 sm:grid-cols-3 sm:gap-8">
             {BENEFICIOS.map((beneficio) => (
               <div key={beneficio.titulo}>
-                <beneficio.icono className="size-6 text-[#c68a3d]" strokeWidth={1.75} />
+                <beneficio.icono className="size-6 text-[#D6AD58]" strokeWidth={1.75} />
                 <h3 className="mt-3 text-sm font-semibold text-foreground">{beneficio.titulo}</h3>
                 <p className="mt-1.5 text-sm text-muted-foreground">{beneficio.descripcion}</p>
               </div>

@@ -23,7 +23,7 @@ export function StaffNav({ rol }: { rol: string }) {
             key={link.href}
             href={link.href}
             className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors ${
-              activo ? "bg-[#c68a3d] font-medium text-[#1a1206]" : "text-white/70 hover:bg-white/10 hover:text-white"
+              activo ? "bg-[#D6AD58] font-medium text-[#1a1206]" : "text-white/70 hover:bg-white/10 hover:text-white"
             }`}
           >
             <link.icono className="size-4" strokeWidth={1.75} />
