@@ -31,7 +31,7 @@ const PASOS = [
   {
     icono: ClipboardList,
     titulo: "Solicita tu financiamiento",
-    descripcion: "Cuéntanos cuánto necesitas para tu proyecto — techo, aire acondicionado o remodelación.",
+    descripcion: "Cuéntanos cuánto necesitas para tu proyecto de roofing — techo nuevo o reparación.",
   },
   {
     icono: SearchCheck,
@@ -63,8 +63,8 @@ const BENEFICIOS = [
   },
   {
     icono: HomeIcon,
-    titulo: "Para tu próximo proyecto",
-    descripcion: "Roofing, aire acondicionado, mejoras del hogar — financiamos lo que tu casa necesita.",
+    titulo: "Especialistas en roofing",
+    descripcion: "Nos enfocamos en financiar techos — el proyecto que más protege tu casa.",
   },
 ];
 
@@ -87,7 +87,7 @@ function TarjetaPortal() {
           <p className="text-xs font-semibold tracking-[0.15em] text-[#153D7E] uppercase">Tu portal</p>
           <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">Aprobado</span>
         </div>
-        <p className="mt-3 text-lg font-semibold text-slate-900">Remodelación de techo</p>
+        <p className="mt-3 text-lg font-semibold text-slate-900">Techo nuevo</p>
         <ul className="mt-5 space-y-3">
           {ETAPAS_PORTAL.map((etapa) => (
             <li key={etapa.texto} className="flex items-center gap-3 text-sm">
@@ -129,13 +129,13 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-4 py-20 sm:px-6 sm:py-24 lg:grid-cols-[1.15fr_1fr]">
           <div>
             <p className="text-xs font-semibold tracking-[0.2em] text-[#F0D89E] uppercase">
-              Financiamiento confiable para tu hogar en Texas
+              Financiamiento de roofing en Texas
             </p>
             <h1 className="mt-5 font-[family-name:var(--font-display)] text-4xl leading-[1.1] text-white text-balance sm:text-5xl lg:text-[3.4rem]">
-              Tu techo, tu aire acondicionado, tu remodelación — financiados con claridad.
+              Tu techo nuevo, financiado con claridad.
             </h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              Financiamos los proyectos de tu hogar con cuotas mensuales fijas, tasas claras y sin letra chica.
+              Financiamos el roofing de tu casa con cuotas mensuales fijas, tasas claras y sin letra chica.
               Solicita, te evaluamos, y arrancas tu proyecto.
             </p>
             <div className="mt-9 flex flex-wrap items-center gap-3">
@@ -208,7 +208,7 @@ export default function Home() {
           <div className="max-w-2xl">
             <p className="text-xs font-semibold tracking-[0.2em] text-[#B8913E] uppercase">Por qué Loyola</p>
             <h2 className="mt-3 font-[family-name:var(--font-display)] text-3xl text-slate-900 sm:text-4xl">
-              Financiamiento pensado para tu hogar
+              Financiamiento pensado para tu techo
             </h2>
           </div>
           <div className="mt-12 grid gap-x-10 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">

@@ -39,12 +39,11 @@ export default function NosotrosPage() {
           <div className="max-w-2xl">
             <p className="text-xs font-semibold tracking-[0.2em] text-[#F0D89E] uppercase">Nosotros</p>
             <h1 className="mt-5 font-[family-name:var(--font-display)] text-4xl leading-[1.1] text-white text-balance sm:text-5xl">
-              Financiamiento directo, pensado para tu próximo proyecto en Texas.
+              Financiamiento directo, pensado para el techo de tu casa en Texas.
             </h1>
             <p className="mt-6 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-              Loyola Finance Group financia proyectos de construcción y mejoras del hogar — techos, aire
-              acondicionado, remodelaciones — para clientes en Texas, trabajando junto al contratista que ejecuta
-              la obra.
+              Loyola Finance Group se especializa en financiar proyectos de roofing — techos nuevos y reparaciones —
+              para clientes en Texas, trabajando junto al contratista que ejecuta la obra.
             </p>
           </div>
         </div>
