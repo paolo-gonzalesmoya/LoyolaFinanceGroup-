@@ -25,7 +25,7 @@ const BENEFICIOS = [
 export default function PortalLoginPage() {
   return (
     <main>
-      <section className="relative overflow-hidden bg-[#174EA6]">
+      <section className="relative overflow-hidden bg-[#153D7E]">
         <HeroPatternStrips />
         <div className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
           <Link href="/" className="mb-8 inline-block">

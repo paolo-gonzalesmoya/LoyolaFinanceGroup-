@@ -142,8 +142,8 @@ export function SimuladorTasas({ montoSolicitado, niveles, scoreReal }: { montoS
                     aria-pressed={estaSeleccionada}
                     className={`rounded-lg border p-4 text-left transition-colors ${
                       estaSeleccionada
-                        ? "border-[#174EA6] bg-[#174EA6]"
-                        : "border-border bg-card hover:border-[#174EA6]/40 hover:bg-muted/40"
+                        ? "border-[#153D7E] bg-[#153D7E]"
+                        : "border-border bg-card hover:border-[#153D7E]/40 hover:bg-muted/40"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
